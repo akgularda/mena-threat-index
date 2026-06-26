@@ -30,3 +30,25 @@ def test_sidak_inflates_pvalue_for_lag_search():
     assert _sidak(0.04, 7) > 0.04                   # 7 lags searched -> inflated
     assert _sidak(0.04, 7) < 1.0
     assert _sidak(0.04, 7) > 0.05                   # a marginal lag is no longer "significant"
+
+
+# ---- P7: honest CIs via stationary bootstrap (METHODOLOGY_REVIEW F11) ----
+
+def test_bootstrap_ci_brackets_point_estimate():
+    from pipeline.markets import _stationary_bootstrap_ci, _ols, _pearson
+    xs = list(range(40))
+    ys = [2 * x + ((x * 7) % 11) - 5 for x in xs]   # ~2x + deterministic noise in [-5, 5]
+    ci = _stationary_bootstrap_ci(xs, ys, 200, 5, seed=0)
+    beta, _a, _r2, _se = _ols(xs, ys)
+    r, _p = _pearson(xs, ys)
+    assert ci["beta_lo"] <= beta <= ci["beta_hi"]
+    assert ci["corr_lo"] <= r <= ci["corr_hi"]
+
+
+def test_bootstrap_is_deterministic():
+    from pipeline.markets import _stationary_bootstrap_ci
+    xs = list(range(30))
+    ys = [0.5 * x for x in xs]
+    a = _stationary_bootstrap_ci(xs, ys, 100, 4, seed=0)
+    b = _stationary_bootstrap_ci(xs, ys, 100, 4, seed=0)
+    assert a == b
