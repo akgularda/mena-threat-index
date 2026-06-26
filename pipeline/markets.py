@@ -15,6 +15,7 @@ from __future__ import annotations
 import csv
 import io
 import math
+import random
 from datetime import datetime, timezone
 
 from .config import Config
@@ -82,6 +83,53 @@ def _bh_significant(pvals, q):
         if pvals[i] <= q * rank / m:
             passed = set(order[:rank])
     return passed
+
+
+def _sidak(p, n):
+    """Sidak correction of a p-value for selecting the best of n searched lags.
+
+    Choosing the max-|r| lag inflates significance (a garden-of-forking-paths);
+    this deflates the p-value back to account for the n looks (METHODOLOGY_REVIEW
+    F10). Benjamini-Hochberg already controls FDR across instruments; this closes
+    the lag-search gap within each instrument.
+    """
+    if n <= 1:
+        return p
+    return clip(1.0 - (1.0 - p) ** n, 0.0, 1.0)
+
+
+def _stationary_bootstrap_ci(xs, ys, n_resamples, block, seed=0, lo_q=0.05, hi_q=0.95):
+    """Politis-Romano stationary bootstrap CI for (correlation, beta) on a weakly
+    dependent series (METHODOLOGY_REVIEW F11). Resamples blocks of geometric length
+    (mean `block`) so the resample stays stationary. Seeded -> reproducible, so the
+    pipeline remains deterministic.
+    """
+    n = len(xs)
+    if n < 5 or n_resamples < 1:
+        return None
+    rng = random.Random(seed)
+    p = 1.0 / max(1, int(block))
+    rs, betas = [], []
+    for _ in range(int(n_resamples)):
+        idx = []
+        i = rng.randrange(n)
+        while len(idx) < n:
+            idx.append(i)
+            i = rng.randrange(n) if rng.random() < p else (i + 1) % n
+        bx = [xs[j] for j in idx]
+        by = [ys[j] for j in idx]
+        r, _p = _pearson(bx, by)
+        b, _a, _r2, _se = _ols(bx, by)
+        rs.append(r)
+        betas.append(b)
+    rs.sort()
+    betas.sort()
+
+    def q(arr, qq):
+        return arr[min(len(arr) - 1, max(0, int(qq * len(arr))))]
+
+    return {"corr_lo": q(rs, lo_q), "corr_hi": q(rs, hi_q),
+            "beta_lo": q(betas, lo_q), "beta_hi": q(betas, hi_q)}
 
 
 # ---------- price fetching ----------
@@ -173,6 +221,12 @@ def _analyse(inst, prices, idx_daily, cfg, index_forecast, current_index, log):
     beta_t_min = float(mk.get("beta_t_min", 1.5))
     inflate = float(mk.get("model_risk_inflation", 1.5))
     z = 1.2815
+    lag_sel = str(mk.get("lag_selection", "sidak")).lower()
+    if lag_sel == "preregistered":
+        lag_set = [lg for lg in lag_set if lg in (0, 1)] or [0]
+    boot_on = bool(mk.get("bootstrap_enabled", True))
+    n_boot = int(mk.get("bootstrap_resamples", 1000))
+    boot_block = int(mk.get("bootstrap_block", 5))
 
     pdates = sorted(prices.keys())
     if len(pdates) < 5:
@@ -231,17 +285,24 @@ def _analyse(inst, prices, idx_daily, cfg, index_forecast, current_index, log):
         return idates[j]
 
     best = None
+    n_eval = 0
     for lag in lag_set:
         xs, ys, nnat = aligned(lag)
         if len(xs) < 5:
             continue
+        n_eval += 1
         r, p = _pearson(xs, ys)
         if best is None or abs(r) > abs(best["r"]):
             best = {"lag": lag, "r": r, "p": p, "xs": xs, "ys": ys, "n": len(xs), "nnat": nnat}
     if best is None:
         return None
+    # control for the lag search before the p-value is used downstream (gate + BH)
+    best["p_raw"] = best["p"]
+    if lag_sel == "sidak":
+        best["p"] = _sidak(best["p"], n_eval)
 
     beta, alpha, r2, se_beta = _ols(best["xs"], best["ys"])
+    ci = _stationary_bootstrap_ci(best["xs"], best["ys"], n_boot, boot_block, seed=0) if boot_on else None
     n_obs = best["n"]
     n_native = best["nnat"]
     source = "mena" if n_native >= min_obs else ("blended" if n_native >= 5 else "bnti_seeded")
@@ -297,7 +358,10 @@ def _analyse(inst, prices, idx_daily, cfg, index_forecast, current_index, log):
         "asset_class": inst.asset_class, "currency": inst.currency,
         "last": round(last, 4), "change_pct": round(change_pct, 2),
         "correlation": round(best["r"], 3), "p_value": round(best["p"], 4),
+        "p_value_raw": round(best["p_raw"], 4), "lag_selection": lag_sel,
         "beta": round(beta, 4), "beta_se": round(se_beta, 4) if se_beta != float("inf") else None,
+        "beta_ci": [round(ci["beta_lo"], 4), round(ci["beta_hi"], 4)] if ci else None,
+        "correlation_ci": [round(ci["corr_lo"], 3), round(ci["corr_hi"], 3)] if ci else None,
         "r2": round(r2, 3), "best_lag_days": best["lag"],
         "n_obs": n_obs, "n_native": n_native,
         "rolling_sign_stability": round(sign_stability, 2),

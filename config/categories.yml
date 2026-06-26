@@ -1,47 +1,67 @@
 # Threat categories, fixed weights, keyword lexicon, and source credibility.
 # Weights never change between runs (auditability). The keyword engine assigns
 # the FIRST category whose pattern matches (order matters: most severe first).
+#
+# `weight`            : the standard weight set (active by default).
+# `weight_goldstein`  : an OPTIONAL alternative, selectable via settings
+#   score.weight_set: goldstein. It rescales the Goldstein (1992) / CAMEO
+#   conflict-intensity ORDERING onto this index's positive=threat range
+#   (most severe ~8, de-escalation negative). The ordering follows the
+#   literature; the exact magnitudes are a documented rescaling, not values
+#   copied verbatim from a source. See METHODOLOGY_REVIEW.md (P11).
 
 categories:
   - key: military_conflict
     label: Military conflict
     weight: 8.0
+    weight_goldstein: 8.0
     # airstrikes, shelling, invasions, open warfare
-    keywords: '\b(war|airstrike|air strike|shelling|artillery|offensive|invasion|invade|frontline|front line|warplane|bombard|missile strike|rocket attack|ground assault|combat|battle|clashes? erupt|armed clash|incursion|fighter jet|drone strike)\b'
+    # Also catches combat casualties and ceasefire breakdowns so they aren't
+    # mis-routed to humanitarian/border (METHODOLOGY_REVIEW F4 / PATCH_PLAN P8).
+    keywords: '\b(war|airstrike|air strike|shelling|artillery|offensive|invasion|invade|frontline|front line|warplane|bombard|missile strike|rocket attack|ground assault|combat|battle|clashes? erupt|armed clash|incursion|fighter jet|drone strike|killed in (?:fighting|combat|clashes?|battle|a raid|an offensive|air ?strikes?|shelling)|soldiers? killed|troops? killed|ceasefire (?:collapse|collapses|collapsed|shatters?|shattered|violat\w+|broke\w*|breaks? down|breaches?)|truce (?:collapse|collapses|collapsed|shatters?|shattered|violat\w+|broke\w*))\b'
 
   - key: terrorism
     label: Terrorism
     weight: 7.0
+    weight_goldstein: 7.5
     keywords: '\b(terror|terrorist|suicide bomb(?:er)?|car bomb|ied|isis|islamic state|daesh|al[- ]?qaeda|al[- ]?shabaab|militant attack|extremist|insurgent|jihadist|hostage|kidnapp?ing)\b'
 
   - key: border_security
     label: Border security
     weight: 5.0
+    weight_goldstein: 6.0
     keywords: '\b(border|frontier|hormuz|strait|bab[- ]?el[- ]?mandeb|suez|checkpoint|crossing|troop|military build|mobili[sz]e|deploy|naval|warship|coast guard|maritime|airspace|no[- ]?fly|ceasefire|cease[- ]?fire|truce|de[- ]?escalat)\b'
 
   - key: political_instability
     label: Political instability
     weight: 4.0
+    weight_goldstein: 4.5
     keywords: '\b(coup|protest|unrest|riot|uprising|revolt|arrest|warrant|impeach|resign|ousted|election|referendum|crackdown|dissident|opposition|trial|sanction|martial law|state of emergency|government collapse|no[- ]?confidence)\b'
 
   - key: humanitarian_crisis
     label: Humanitarian crisis
     weight: 3.0
+    weight_goldstein: 3.5
     keywords: '\b(humanitarian|refugee|displace|migrant|deport|famine|starv|drought|flood|earthquake|cholera|outbreak|epidemic|aid (convoy|block)|blockade|water crisis|civilian casualt|killed|wounded|death toll)\b'
 
   - key: diplomatic_tensions
     label: Diplomatic tensions
     weight: 2.5
-    keywords: '\b(diplomat|summit|talks|negotiat|envoy|ambassador|recall|expel|condemn|warn|threat|dispute|tension|standoff|nuclear|enrich|embassy|foreign minister|accuse|escalat)\b'
+    weight_goldstein: 3.0
+    # 'threat' removed: far too common a word, it over-matched into diplomacy
+    # (METHODOLOGY_REVIEW F4 / PATCH_PLAN P8).
+    keywords: '\b(diplomat|summit|talks|negotiat|envoy|ambassador|recall|expel|condemn|warn|dispute|tension|standoff|nuclear|enrich|embassy|foreign minister|accuse|escalat)\b'
 
   - key: trade_agreement
     label: Trade & de-escalation
     weight: -2.0
+    weight_goldstein: -3.0
     keywords: '\b(trade (deal|agreement|pact)|investment|economic cooperation|normali[sz]e relations|reopen|reconciliation|peace (deal|accord|talks succeed)|sign(ed)? agreement|partnership|memorandum|mou\b|pipeline deal)\b'
 
   - key: neutral
     label: Neutral / context
     weight: 0.0
+    weight_goldstein: 0.0
     keywords: ''   # fallback — assigned when nothing else matches
 
 # Source credibility multiplier (applied to the AVERAGING weight, not to severity).

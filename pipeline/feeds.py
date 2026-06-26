@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import math
+import re
 from dataclasses import dataclass, field
 from urllib.parse import quote
 
@@ -22,6 +23,8 @@ class Article:
     country: str
     lang: str
     _tokens: set = field(default_factory=set, repr=False)
+    _sources: set = field(default_factory=set, repr=False)
+    corroboration: int = 1
 
 
 def _gnews_url(q: str, hl: str, gl: str, ceid: str, when_days: int) -> str:
@@ -61,6 +64,100 @@ def _entry_to_article(e, source: str, country: str, lang: str) -> Article | None
                    source=src, country=country, lang=lang, _tokens=token_set(title))
 
 
+def _dedupe(windowed, sim):
+    """Per-country de-duplication (exact title/url key, then fuzzy Jaccard).
+
+    Counts the distinct corroborating sources of each kept article on
+    `corroboration` (>=1), so the score's confidence can reward cross-source
+    agreement instead of category homogeneity (METHODOLOGY_REVIEW F7 / P2).
+    Returns (kept_articles, dropped_count).
+    """
+    by_country: dict = {}
+    seen_keys: dict = {}
+    kept_by_key: dict = {}
+    dropped = 0
+    for a in windowed:
+        bucket = by_country.setdefault(a.country, [])
+        keys = seen_keys.setdefault(a.country, set())
+        kmap = kept_by_key.setdefault(a.country, {})
+        k_title = title_key(a.title)
+        k_url = canon_url(a.link)
+        kept = kmap.get(k_title) or (kmap.get(k_url) if k_url else None)
+        if kept is None:
+            for b in bucket:
+                if jaccard(a._tokens, b._tokens) >= sim:
+                    kept = b
+                    break
+        if kept is not None:
+            kept._sources.add(a.source)
+            dropped += 1
+            continue
+        a._sources.add(a.source)
+        keys.add(k_title)
+        kmap[k_title] = a
+        if k_url:
+            keys.add(k_url)
+            kmap[k_url] = a
+        bucket.append(a)
+    articles = [a for bucket in by_country.values() for a in bucket]
+    for a in articles:
+        a.corroboration = len(a._sources)
+    return articles, dropped
+
+
+# A few names need an explicit exclusion so a longer name doesn't trigger them.
+_ATTR_EXCLUSIONS = {"Sudan": ["South Sudan"]}
+
+
+def _term_in(title, term):
+    """Whole-word match for Latin terms; substring for native scripts (Arabic,
+    Hebrew, ... have no simple \\b)."""
+    low = (title or "").lower()
+    t = str(term).lower()
+    if not t:
+        return False
+    if t.isascii():
+        return re.search(r"\b" + re.escape(t) + r"\b", low) is not None
+    return t in low
+
+
+def _passes_attribution(title, match_terms, exclude_terms):
+    """Keep a broad Google-News result for a country only if the title actually
+    names it (English OR native script) and contains no excluded ambiguous term.
+    Empty match_terms -> no filtering, so unconfigured countries don't regress
+    (METHODOLOGY_REVIEW F2 / PATCH_PLAN P13 follow-up)."""
+    if not match_terms:
+        return True
+    if not any(_term_in(title, m) for m in match_terms):
+        return False
+    if any(_term_in(title, x) for x in (exclude_terms or [])):
+        return False
+    return True
+
+
+def _match_countries(title: str, names: list, aliases: dict) -> list:
+    """Attribute a pan-regional headline to tracked countries by WHOLE-WORD match.
+
+    A bare substring match over-attributes — "woman"/"Romania" both contain
+    "oman", "South Sudan" contains "Sudan" (METHODOLOGY_REVIEW F2). Word
+    boundaries plus a small exclusion map fix that without losing real mentions.
+    """
+    low = (title or "").lower()
+    matched = []
+    for name in names:
+        probe = low
+        for ex in _ATTR_EXCLUSIONS.get(name, []):
+            probe = probe.replace(ex.lower(), " ")
+        if re.search(r"\b" + re.escape(name.lower()) + r"\b", probe):
+            matched.append(name)
+    for al, target in aliases.items():
+        if target in matched:
+            continue
+        if re.search(r"\b" + re.escape(al.lower()) + r"\b", low):
+            matched.append(target)
+    return matched
+
+
 def fetch_all(cfg: Config, log) -> tuple[list, dict]:
     """Return (articles, stats). Articles are de-duplicated globally per country."""
     s = cfg.settings.get("ingest", {})
@@ -97,7 +194,10 @@ def fetch_all(cfg: Config, log) -> tuple[list, dict]:
                              g.get("ceid", "US:en"), when_days)
             entries = _parse_feed(sess, url, log)
             stats["feeds_ok" if entries else "feeds_fail"] += 1
-            collect(entries, "Google News", c.name, g.get("hl", "en")[:2])
+            # Broad query layer: keep only results whose title actually names the country.
+            kept = [e for e in entries
+                    if _passes_attribution(getattr(e, "title", "") or "", c.match, c.exclude)]
+            collect(kept, "Google News", c.name, g.get("hl", "en")[:2])
 
     # --- shared pan-regional feeds: attribute by country mention ---
     name_tokens = {c.name: c for c in cfg.countries}
@@ -111,11 +211,7 @@ def fetch_all(cfg: Config, log) -> tuple[list, dict]:
             a = _entry_to_article(e, f.get("source", "feed"), "", f.get("lang", "en"))
             if not a:
                 continue
-            hay = a.raw_title
-            matched = [name for name in name_tokens if name in hay]
-            for al, target in aliases.items():
-                if al in hay and target not in matched:
-                    matched.append(target)
+            matched = _match_countries(a.raw_title, list(name_tokens), aliases)
             for name in matched:
                 raw_articles.append(Article(
                     title=a.title, raw_title=a.raw_title, link=a.link,
@@ -136,31 +232,8 @@ def fetch_all(cfg: Config, log) -> tuple[list, dict]:
             stats["dropped_old"] += 1
 
     # --- de-duplicate, per country (exact title/url key, then fuzzy) ---
-    by_country: dict[str, list[Article]] = {}
-    seen_keys: dict[str, set] = {}
-    for a in windowed:
-        bucket = by_country.setdefault(a.country, [])
-        keys = seen_keys.setdefault(a.country, set())
-        k_title = title_key(a.title)
-        k_url = canon_url(a.link)
-        if k_title in keys or (k_url and k_url in keys):
-            stats["dropped_dup"] += 1
-            continue
-        # fuzzy: compare against already-kept titles in this country
-        dup = False
-        for b in bucket:
-            if jaccard(a._tokens, b._tokens) >= sim:
-                dup = True
-                break
-        if dup:
-            stats["dropped_dup"] += 1
-            continue
-        keys.add(k_title)
-        if k_url:
-            keys.add(k_url)
-        bucket.append(a)
-
-    articles = [a for bucket in by_country.values() for a in bucket]
+    articles, dropped_dup = _dedupe(windowed, sim)
+    stats["dropped_dup"] += dropped_dup
     stats["kept"] = len(articles)
     log.info("feeds: ok=%d fail=%d raw=%d kept=%d (old=%d dup=%d)",
              stats["feeds_ok"], stats["feeds_fail"], stats["raw"], stats["kept"],

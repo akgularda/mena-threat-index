@@ -20,11 +20,16 @@ score:
   credibility_default: 0.60 # used when a source isn't in the credibility table
   shrink_k: 3               # empirical-Bayes pseudo-count toward country baseline
   baseline_window_days: 14  # trailing window for the per-country prior mean
+  saturation_scale: 5.0     # index = 1 + 9*(1 - exp(-eff/scale * gain)); 5.0/1.2 = BNTI curve
+  saturation_gain: 1.2
   ewma_alpha: 0.20          # composite smoothing factor (normal regime)
   ewma_alpha_spike: 0.50    # smoothing factor when a genuine jump is detected
   spike_min_jump: 1.0       # |diff| must exceed max(this, 2*sigma) to count as a spike
   conf_volume_scale: 4.0    # N0 in volume-adequacy = 1 - exp(-N_eff / N0)
   conf_diversity_target: 4  # target number of distinct sources for full diversity
+  confidence_model: v_d_c   # v_d_c (volume x diversity x corroboration, default) |
+                            # v_d (volume x diversity) | v_d_a (legacy homogeneity term)
+  weight_set: default       # default | goldstein (literature-anchored alt set, see categories.yml)
   freshness_half_life_h: 12 # composite freshness = 0.5 ** (staleness_h / half_life)
   baseline_index: 1.0       # floor index for a country with no qualifying events
 
@@ -32,6 +37,12 @@ score:
 thresholds:
   elevated: 4.0
   critical: 7.0
+
+# ---- Briefing / headline ----
+briefing:
+  headline_conf_gate: 0.35  # a country is named in the headline only if its index
+                            # is >= thresholds.elevated AND its confidence >= this
+
 
 # ---- Forecast ----
 forecast:
@@ -51,14 +62,16 @@ markets:
   price_history_days: 200
   lag_set: [-3, -2, -1, 0, 1, 2, 3]   # cross-correlation lags (index leads market at +)
   rolling_window: 25
+  bootstrap_enabled: true   # publish stationary-bootstrap CIs for r and beta
   bootstrap_resamples: 1000
-  bootstrap_block: 5
+  bootstrap_block: 5        # mean block length (preserves serial dependence)
   min_paired_obs: 20        # native obs required to call a correlation "confirmed"
   min_abs_corr: 0.30        # |r| gate
   fdr_q: 0.10               # Benjamini-Hochberg false-discovery rate
+  lag_selection: sidak      # correct best-of-N-lags search: sidak (default) |
+                            # preregistered (lags 0,1 only) | best (legacy, no correction)
   sign_stability_min: 0.60
   beta_t_min: 1.5           # |beta|/SE gate before publishing a market forecast
-  bnti_prior_k: 20          # shrinkage of MENA beta toward BNTI beta (in obs)
   model_risk_inflation: 1.5 # widen market forecast bands by this factor
   forecast_days: [1, 3, 5]
 

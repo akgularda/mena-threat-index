@@ -16,6 +16,14 @@ from .config import Config
 from .util import age_hours, clip, to_iso, utcnow
 
 
+def _transform(eff, scale, gain):
+    """Saturating map from mean event weight to the 1-10 index. Constants are
+    config-exposed (score.saturation_scale, score.saturation_gain) so they can be
+    tuned and sensitivity-tested without touching code (METHODOLOGY_REVIEW F6/P10).
+    Defaults (5.0, 1.2) reproduce the inherited BNTI curve exactly."""
+    return clip(1.0 + 9.0 * (1.0 - math.exp(-eff / scale * gain)), 1.0, 10.0)
+
+
 def _per_country(name, events, cfg: Config, prior_raw, prev_index, now):
     sc = cfg.settings.get("score", {})
     half_life = float(sc.get("recency_half_life_h", 18))
@@ -59,9 +67,16 @@ def _per_country(name, events, cfg: Config, prior_raw, prev_index, now):
     avg_w_shrunk = (n_eff * avg_w + k_shrink * m_prior) / (n_eff + k_shrink) if (n_eff + k_shrink) > 0 else avg_w
 
     eff = max(0.0, avg_w_shrunk)
-    index = clip(1.0 + 9.0 * (1.0 - math.exp(-eff / 5.0 * 1.2)), 1.0, 10.0)
+    index = _transform(eff, float(sc.get("saturation_scale", 5.0)),
+                       float(sc.get("saturation_gain", 1.2)))
 
     # ---- confidence ----
+    # Volume adequacy (Kish n_eff) and source diversity (Shannon entropy) are
+    # always used. The third term depends on confidence_model:
+    #   v_d_c (default) -> cross-source CORROBORATION of events  [METHODOLOGY_REVIEW F7]
+    #   v_d             -> drop the third term entirely
+    #   v_d_a (legacy)  -> spread of event severities (category homogeneity)
+    model = str(sc.get("confidence_model", "v_d_c")).lower()
     V = 1.0 - math.exp(-n_eff / n0) if n0 > 0 else 0.0
     sources = {}
     for e in qualifying:
@@ -70,12 +85,18 @@ def _per_country(name, events, cfg: Config, prior_raw, prev_index, now):
     shares = [v / tot for v in sources.values()]
     H = -sum(p * math.log(p) for p in shares if p > 0)
     D = clip(H / math.log(div_target), 0.0, 1.0) if div_target > 1 else 0.0
-    # weighted std of weights (agreement: low spread => agreement)
-    wbar = float((aw * w).sum() / denom) if denom > 0 else 0.0
-    var_w = float((aw * (w - wbar) ** 2).sum() / denom) if denom > 0 else 0.0
-    sigma_w = math.sqrt(max(0.0, var_w))
-    A = 1.0 - min(1.0, sigma_w / 3.0)
-    confidence = clip((max(V, 1e-6) * max(D, 1e-6) * max(A, 1e-6)) ** (1.0 / 3.0), 0.05, 0.99)
+    if model == "v_d":
+        confidence = clip((max(V, 1e-6) * max(D, 1e-6)) ** 0.5, 0.05, 0.99)
+    elif model == "v_d_a":
+        wbar = float((aw * w).sum() / denom) if denom > 0 else 0.0
+        var_w = float((aw * (w - wbar) ** 2).sum() / denom) if denom > 0 else 0.0
+        A = 1.0 - min(1.0, math.sqrt(max(0.0, var_w)) / 3.0)
+        confidence = clip((max(V, 1e-6) * max(D, 1e-6) * max(A, 1e-6)) ** (1.0 / 3.0), 0.05, 0.99)
+    else:  # v_d_c
+        corr = np.array([float(e.get("corroboration", 1)) for e in qualifying], dtype=float)
+        c_e = 1.0 - 0.5 * np.exp(-(corr - 1.0))   # 0.5 single-source -> ~1 multi-source
+        C = float((aw * c_e).sum() / denom) if denom > 0 else 0.0
+        confidence = clip((max(V, 1e-6) * max(D, 1e-6) * max(C, 1e-6)) ** (1.0 / 3.0), 0.05, 0.99)
 
     # ---- category components (for the "why" breakdown) ----
     comp = {}
@@ -109,6 +130,7 @@ def _per_country(name, events, cfg: Config, prior_raw, prev_index, now):
             "weight": round(float(e.get("weight", 0.0)), 2),
             "credibility": round(float(e.get("credibility", 0.6)), 2),
             "recency_weight": round(float(e["recency_weight"]), 3),
+            "corroboration": int(e.get("corroboration", 1)),
         })
 
     country_obj = {

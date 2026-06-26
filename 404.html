@@ -124,6 +124,10 @@
             <div style="font-family:'IBM Plex Mono',monospace;font-size:20px;color:#ece6d8">24</div>
             <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.12em;color:#7d7565;text-transform:uppercase;margin-top:3px">Countries</div>
           </div>
+          <div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:20px;color:#ece6d8">{{ confidence }}</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.12em;color:#7d7565;text-transform:uppercase;margin-top:3px">Confidence</div>
+          </div>
         </div>
       </div>
       <!-- briefing -->
@@ -254,7 +258,7 @@
     <div style="padding:34px 0 24px 0;border-bottom:1px solid #2c2820">
       <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.2em;color:#7d7565;text-transform:uppercase;margin-bottom:10px">Watchlist · 24 countries</div>
       <h1 style="font-family:'Spectral',serif;font-weight:600;font-size:34px;color:#ece6d8;margin:0">MENA countries</h1>
-      <p style="color:#9a9284;font-size:14.5px;max-width:620px;margin:12px 0 0 0;line-height:1.6">Each country is scored from translated regional reporting and mapped onto a fixed 1–10 threat scale. Open a country for its active signals and category breakdown.</p>
+      <p style="color:#9a9284;font-size:14.5px;max-width:620px;margin:12px 0 0 0;line-height:1.6">Each country is scored from regional reporting and mapped onto a fixed 1–10 threat scale. Open a country for its active signals and category breakdown.</p>
     </div>
     <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0;border-left:1px solid #2c2820;border-top:1px solid #2c2820">
       <sc-for list="{{ countriesList }}" as="c" hint-placeholder-count="7">
@@ -310,6 +314,7 @@
         <div style="display:flex;gap:28px;margin-top:26px">
           <div><div style="font-family:'IBM Plex Mono',monospace;font-size:18px;color:#ece6d8">{{ d_eventCount }}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:#7d7565;text-transform:uppercase;margin-top:3px">Signals</div></div>
           <div><div style="font-family:'IBM Plex Mono',monospace;font-size:18px;color:#ece6d8">{{ d_raw }}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:#7d7565;text-transform:uppercase;margin-top:3px">Mean weight</div></div>
+          <div><div style="font-family:'IBM Plex Mono',monospace;font-size:18px;color:#ece6d8">{{ d_confidence }}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:#7d7565;text-transform:uppercase;margin-top:3px">Confidence</div></div>
         </div>
       </div>
       <!-- breakdown -->
@@ -444,7 +449,7 @@
 
     <!-- weights -->
     <h2 style="font-family:'Spectral',serif;font-weight:600;font-size:24px;color:#ece6d8;margin:44px 0 6px 0">Category weights</h2>
-    <p style="color:#9a9284;font-size:14px;margin:0 0 20px 0">The categorizer selects a canonical category per headline; each maps to a fixed weight. Weights never change between runs.</p>
+    <p style="color:#9a9284;font-size:14px;margin:0 0 20px 0">Each headline is assigned one canonical category; each category maps to a fixed severity weight, ordered from open conflict down to de-escalation. The ordering follows event-data severity scales used in conflict research (Goldstein 1992; CAMEO). Weights never change between runs.</p>
     <div style="border:1px solid #2c2820">
       <sc-for list="{{ weights }}" as="w" hint-placeholder-count="8">
         <div style="display:flex;align-items:center;gap:16px;padding:13px 18px;border-bottom:1px solid #1c1a14">
@@ -463,6 +468,7 @@
       <div style="color:#7d7565;margin-top:12px">// composite is a weighted average across tracked countries</div>
       <div>Composite = weighted_avg( PerCountry across 24 tracked countries )</div>
     </div>
+    <p style="color:#9a9284;font-size:13.5px;margin:14px 0 0 0;line-height:1.6">avg(w) is the recency-weighted, credibility-weighted <strong>mean</strong> event weight, stabilised toward the country&rsquo;s recent baseline. The score reflects <strong>severity</strong>, not how many times a story is filed.</p>
 
     <!-- thresholds -->
     <h2 style="font-family:'Spectral',serif;font-weight:600;font-size:24px;color:#ece6d8;margin:44px 0 16px 0">Operational thresholds</h2>
@@ -471,6 +477,9 @@
       <div style="border:1px solid #2c2820;border-top:2px solid #d8a13f;padding:20px"><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;color:#d8a13f">ELEVATED</div><div style="font-family:'IBM Plex Mono',monospace;font-size:22px;color:#ece6d8;margin:10px 0 4px 0">4.0 – 7.0</div><div style="font-size:13px;color:#9a9284;line-height:1.5">Sustained tension or instability warranting watch.</div></div>
       <div style="border:1px solid #2c2820;border-top:2px solid #cf5b4e;padding:20px"><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;color:#cf5b4e">CRITICAL</div><div style="font-family:'IBM Plex Mono',monospace;font-size:22px;color:#ece6d8;margin:10px 0 4px 0">7.0 – 10.0</div><div style="font-size:13px;color:#9a9284;line-height:1.5">Active conflict or security rupture with regional consequences.</div></div>
     </div>
+
+    <h2 style="font-family:'Spectral',serif;font-weight:600;font-size:24px;color:#ece6d8;margin:44px 0 6px 0">Confidence</h2>
+    <p style="color:#9a9284;font-size:14.5px;margin:0 0 20px 0;line-height:1.65">Each country and the regional composite carry a confidence between 0 and 1. It rises with the <strong>effective number of events</strong>, the <strong>diversity of sources</strong> reporting them, and <strong>corroboration</strong> across independent outlets; it falls when coverage is thin, stale, or single-sourced. Confidence is shown alongside every reading so a well-evidenced score is not read the same as a tentative one.</p>
 
     <h2 style="font-family:'Spectral',serif;font-weight:600;font-size:24px;color:#ece6d8;margin:44px 0 6px 0">Sources</h2>
     <p style="color:#9a9284;font-size:14px;margin:0 0 20px 0">Reporting is drawn from regional outlets in their original language, plus aggregated news indices. Coverage is reviewed as feeds change.</p>
@@ -482,9 +491,12 @@
       <div style="display:grid;grid-template-columns:1.4fr 1fr auto;gap:14px;padding:13px 18px;border-bottom:1px solid #1c1a14;align-items:center"><a href="https://syrianobserver.com" target="_blank" rel="noopener" class="bnti-link" style="font-family:'Spectral',serif;font-size:15px;color:#d8d0c0">The Syrian Observer ↗</a><span style="font-size:13px;color:#9a9284">Levant coverage</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#7d7565">EN</span></div>
     </div>
 
+    <h2 style="font-family:'Spectral',serif;font-weight:600;font-size:24px;color:#ece6d8;margin:44px 0 6px 0">Methodology basis</h2>
+    <p style="color:#9a9284;font-size:14px;margin:0 0 8px 0;line-height:1.65">MTI follows established practice for news-based risk indices (Caldara &amp; Iacoviello, <em>Measuring Geopolitical Risk</em>, AER 2022; Baker, Bloom &amp; Davis, <em>Measuring Economic Policy Uncertainty</em>, QJE 2016) and for composite indicators (OECD/EC-JRC <em>Handbook on Constructing Composite Indicators</em>, 2008). Event-severity weighting draws on conflict event-data scales (Goldstein 1992; CAMEO); the forecast uses exponential-smoothing methods (Gardner &amp; McKenzie 1985); market reactions use the event-study market model (MacKinlay 1997) with false-discovery control (Benjamini &amp; Hochberg 1995). Full references are in the project&rsquo;s METHODOLOGY_REVIEW.md.</p>
+
     <div style="margin-top:40px;padding:22px;border:1px solid #2c2820;background:#191711">
       <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.16em;color:#7d7565;text-transform:uppercase;margin-bottom:10px">Limitations</div>
-      <p style="color:#a8a090;font-size:14px;line-height:1.65;margin:0;text-wrap:pretty">The index reflects the volume and severity of published reporting, not ground truth. Source coverage is uneven across languages, machine translation introduces noise, and runs that fail validation are withheld rather than published. MTI is a monitoring aid, not an intelligence assessment.</p>
+      <p style="color:#a8a090;font-size:14px;line-height:1.65;margin:0;text-wrap:pretty">The index reflects the volume and severity of published reporting, not ground truth. Source coverage is uneven across languages, machine categorisation introduces noise, and runs that fail validation are withheld rather than published. Categorisation of non-English headlines depends on the optional language model; without it, local-language coverage contributes little to scores. Market correlations are short-sample, unstable, and indicate association, not causation. MTI is a monitoring aid, not an intelligence assessment.</p>
     </div>
   </main>
   </sc-if>
@@ -497,7 +509,7 @@
       <h1 style="font-family:'Spectral',serif;font-weight:600;font-size:38px;line-height:1.15;color:#ece6d8;margin:0;max-width:600px">A standing read on MENA risk</h1>
     </div>
     <div style="padding:32px 0;border-bottom:1px solid #221f18">
-      <p style="font-family:'Spectral',serif;font-size:21px;line-height:1.55;color:#d8d0c0;margin:0;text-wrap:pretty">MTI watches public reporting across 24 MENA countries, translates and categorizes it, and turns each update into a risk signal you can follow over time — open to anyone, with no wall.</p>
+      <p style="font-family:'Spectral',serif;font-size:21px;line-height:1.55;color:#d8d0c0;margin:0;text-wrap:pretty">MTI watches public reporting across 24 MENA countries, categorises it by country and threat type, and turns each update into a risk signal you can follow over time — open to anyone, with no wall.</p>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border-bottom:1px solid #221f18">
       <div style="padding:30px 30px 30px 0;border-right:1px solid #221f18">
@@ -1011,9 +1023,9 @@ class Component extends DCLogic {
     // methodology pipeline
     const pipeline=[
       { num:'01', title:'Regional ingestion', body:'Headlines are pulled on a two-hour cycle from RSS and Google News feeds across 24 MENA countries, in their original languages when available.' },
-      { num:'02', title:'Translation', body:'Non-English items are machine-translated so that a single taxonomy can be applied consistently across the region.' },
-      { num:'03', title:'Attribution & labelling', body:'A keyword engine provides deterministic country attribution and category labels, with optional NVIDIA-backed LLM review when a key is present.' },
-      { num:'04', title:'Deterministic scoring', body:'Each category maps to a fixed weight. Per-country and composite scores follow a closed formula, so the same inputs always produce the same index. Runs that fail validation are withheld.' }
+      { num:'02', title:'Attribution & categorisation', body:'A deterministic keyword engine assigns each headline to one country and one threat category. When an NVIDIA API key is configured, an LLM reviews and may refine the category; English-language signals are categorised directly, and local-language coverage relies on the LLM pass.' },
+      { num:'03', title:'Deterministic scoring', body:'Each category maps to a fixed weight. Per-country and composite scores follow a closed formula, so the same inputs always produce the same index. Recency, source credibility and coverage adequacy are built in.' },
+      { num:'04', title:'Confidence & validation', body:'Every reading carries a 0-1 confidence from event volume, source diversity and corroboration. Runs that fail validation, or whose coverage is too thin, are withheld rather than published.' }
     ];
     const weights=D.weights.map(w=>({ label:w[1], weight:(w[2]>0?'+':'')+w[2].toFixed(1), color:this.catColor(w[2]>0?w[2]:0.0001*0||w[2]) , }));
     // fix weight colors (trade negative -> brass, neutral -> muted)
@@ -1061,6 +1073,7 @@ class Component extends DCLogic {
       statusColor:this.color(mainIndex), statusLabel:this.label(mainIndex),
       deltaLabel:(delta>=0?'+':'')+delta.toFixed(2), deltaColor: delta>0?'#cf5b4e': delta<0?'#6fae7e':'#9a9284',
       totalSignals:total,
+      confidence:(D.meta&&D.meta.confidence!=null)?Math.round(D.meta.confidence*100)+'%':'—',
       briefWindow:D.brief.window, briefSources:D.brief.sources, briefRefresh:D.brief.refresh,
       briefHeadline:D.brief.headline, briefBullets,
       countriesList, feed:feedV, hasFeed:feedV.length>0, noFeed:feedV.length===0, feedCount,
@@ -1084,6 +1097,7 @@ class Component extends DCLogic {
       marketRows,
       // detail
       d_name:cn, d_code:co.code, d_index:co.index.toFixed(2), d_raw:co.raw.toFixed(2),
+      d_confidence:(co.confidence!=null?Math.round(co.confidence*100)+'%':'—'),
       d_color:this.color(co.index), d_status:this.label(co.index), d_pct:((co.index-1)/9*100).toFixed(1),
       d_eventCount:counts[cn]||0, d_breakdown, d_hasBreakdown:d_breakdown.length>0, d_noBreakdown:d_breakdown.length===0,
       d_events, d_hasEvents:d_events.length>0, d_noEvents:d_events.length===0,

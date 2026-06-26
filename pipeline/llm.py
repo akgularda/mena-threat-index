@@ -86,7 +86,9 @@ def classify(cfg, titles, valid_keys, log) -> list:
         usr = (f"Categories: {cat_list}\n\n"
                f"Headlines:\n{numbered}\n\n"
                f"Return ONLY a JSON array of {len(chunk)} strings (one category key per "
-               f"headline, in order). Use 'neutral' if none clearly applies.")
+               f"headline, in order). Use 'neutral' only for genuine non-threat news; use "
+               f"'uncertain' if you cannot confidently classify a headline — do not guess. "
+               f"An 'uncertain' label keeps the deterministic keyword category.")
         content = _chat(cfg, [{"role": "system", "content": sys},
                               {"role": "user", "content": usr}], log,
                         max_tokens=min(2000, 40 + 12 * len(chunk)))

@@ -37,6 +37,8 @@ class Country:
     weight: float
     feeds: list = field(default_factory=list)        # list[{url, source, lang}]
     gnews: list = field(default_factory=list)         # list[{q, hl, gl, ceid}]
+    match: list = field(default_factory=list)         # attribution terms (en + native)
+    exclude: list = field(default_factory=list)       # ambiguous terms to reject
 
 
 @dataclass
@@ -67,28 +69,41 @@ class Config:
         return [c.key for c in self.categories]
 
 
+def _build_categories(cats_raw, weight_set="default"):
+    """Build Category objects, selecting the active weight column. 'goldstein'
+    uses the literature-anchored alternative weights defined in categories.yml;
+    'default' uses the standard weights (METHODOLOGY_REVIEW F5 / PATCH_PLAN P11)."""
+    wkey = "weight_goldstein" if weight_set == "goldstein" else "weight"
+    return [
+        Category(key=c["key"], label=c["label"],
+                 weight=float(c.get(wkey, c["weight"])),
+                 keywords=c.get("keywords", "") or "")
+        for c in cats_raw["categories"]
+    ]
+
+
 def load() -> Config:
     settings = _load("settings.yml")
     cats_raw = _load("categories.yml")
     countries_raw = _load("countries.yml")
     markets_raw = _load("markets.yml")
 
-    categories = [
-        Category(key=c["key"], label=c["label"], weight=float(c["weight"]),
-                 keywords=c.get("keywords", "") or "")
-        for c in cats_raw["categories"]
-    ]
+    weight_set = str(settings.get("score", {}).get("weight_set", "default")).lower()
+    categories = _build_categories(cats_raw, weight_set)
     cat_weight = {c.key: c.weight for c in categories}
     cat_label = {c.key: c.label for c in categories}
     source_credibility = {str(k).lower(): float(v)
                           for k, v in (cats_raw.get("source_credibility") or {}).items()}
 
+    attribution = countries_raw.get("attribution") or {}
     countries = []
     for c in countries_raw["countries"]:
+        attr = attribution.get(c["name"], {})
         countries.append(Country(
             name=c["name"], map_name=c["map_name"], iso2=c["iso2"],
             lang=c.get("lang", "en"), weight=float(c.get("weight", 1.0)),
             feeds=c.get("feeds") or [], gnews=c.get("gnews") or [],
+            match=attr.get("match") or [], exclude=attr.get("exclude") or [],
         ))
     shared_feeds = countries_raw.get("shared_feeds") or []
 

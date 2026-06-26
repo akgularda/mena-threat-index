@@ -78,8 +78,8 @@ def main() -> int:
     # persist this run
     history.append_run(run_id, to_iso(ts), result, forecast_next, market_rows, log)
 
-    # 5. briefing
-    brief = briefing.build(result, cfg, log)
+    # 5. briefing (prev_composite captured BEFORE the append, for the trend term)
+    brief = briefing.build(result, cfg, log, prev_composite=prev_composite)
 
     # 6. assemble + publish
     model_label = "deterministic+nvidia" if llm.available(cfg) else "deterministic"
