@@ -7,7 +7,9 @@ categories:
     label: Military conflict
     weight: 8.0
     # airstrikes, shelling, invasions, open warfare
-    keywords: '\b(war|airstrike|air strike|shelling|artillery|offensive|invasion|invade|frontline|front line|warplane|bombard|missile strike|rocket attack|ground assault|combat|battle|clashes? erupt|armed clash|incursion|fighter jet|drone strike)\b'
+    # Also catches combat casualties and ceasefire breakdowns so they aren't
+    # mis-routed to humanitarian/border (METHODOLOGY_REVIEW F4 / PATCH_PLAN P8).
+    keywords: '\b(war|airstrike|air strike|shelling|artillery|offensive|invasion|invade|frontline|front line|warplane|bombard|missile strike|rocket attack|ground assault|combat|battle|clashes? erupt|armed clash|incursion|fighter jet|drone strike|killed in (?:fighting|combat|clashes?|battle|a raid|an offensive|air ?strikes?|shelling)|soldiers? killed|troops? killed|ceasefire (?:collapse|collapses|collapsed|shatters?|shattered|violat\w+|broke\w*|breaks? down|breaches?)|truce (?:collapse|collapses|collapsed|shatters?|shattered|violat\w+|broke\w*))\b'
 
   - key: terrorism
     label: Terrorism
@@ -32,7 +34,9 @@ categories:
   - key: diplomatic_tensions
     label: Diplomatic tensions
     weight: 2.5
-    keywords: '\b(diplomat|summit|talks|negotiat|envoy|ambassador|recall|expel|condemn|warn|threat|dispute|tension|standoff|nuclear|enrich|embassy|foreign minister|accuse|escalat)\b'
+    # 'threat' removed: far too common a word, it over-matched into diplomacy
+    # (METHODOLOGY_REVIEW F4 / PATCH_PLAN P8).
+    keywords: '\b(diplomat|summit|talks|negotiat|envoy|ambassador|recall|expel|condemn|warn|dispute|tension|standoff|nuclear|enrich|embassy|foreign minister|accuse|escalat)\b'
 
   - key: trade_agreement
     label: Trade & de-escalation
