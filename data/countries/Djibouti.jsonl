@@ -3,3 +3,4 @@
 {"run_id": "2026-06-26T16Z", "ts": "2026-06-26T16:00:00Z", "name": "Djibouti", "index": 2.56, "raw": 0.791, "confidence": 0.684, "n_events": 41}
 {"run_id": "2026-06-26T18Z", "ts": "2026-06-26T18:00:00Z", "name": "Djibouti", "index": 1.0, "raw": 0.0, "confidence": 0.05, "n_events": 0}
 {"run_id": "2026-06-26T20Z", "ts": "2026-06-26T20:00:00Z", "name": "Djibouti", "index": 2.13, "raw": 0.56, "confidence": 0.761, "n_events": 39}
+{"run_id": "2026-06-26T22Z", "ts": "2026-06-26T22:00:00Z", "name": "Djibouti", "index": 2.1, "raw": 0.541, "confidence": 0.766, "n_events": 40}

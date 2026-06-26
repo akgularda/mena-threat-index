@@ -3,3 +3,4 @@
 {"run_id": "2026-06-26T16Z", "ts": "2026-06-26T16:00:00Z", "name": "Palestine", "index": 2.66, "raw": 0.847, "confidence": 0.66, "n_events": 179}
 {"run_id": "2026-06-26T18Z", "ts": "2026-06-26T18:00:00Z", "name": "Palestine", "index": 3.12, "raw": 1.12, "confidence": 0.364, "n_events": 10}
 {"run_id": "2026-06-26T20Z", "ts": "2026-06-26T20:00:00Z", "name": "Palestine", "index": 2.83, "raw": 0.945, "confidence": 0.651, "n_events": 182}
+{"run_id": "2026-06-26T22Z", "ts": "2026-06-26T22:00:00Z", "name": "Palestine", "index": 2.75, "raw": 0.898, "confidence": 0.663, "n_events": 179}

@@ -3,3 +3,4 @@
 {"run_id": "2026-06-26T16Z", "ts": "2026-06-26T16:00:00Z", "name": "Sudan", "index": 2.7, "raw": 0.869, "confidence": 0.582, "n_events": 152}
 {"run_id": "2026-06-26T18Z", "ts": "2026-06-26T18:00:00Z", "name": "Sudan", "index": 2.23, "raw": 0.61, "confidence": 0.05, "n_events": 1}
 {"run_id": "2026-06-26T20Z", "ts": "2026-06-26T20:00:00Z", "name": "Sudan", "index": 2.67, "raw": 0.853, "confidence": 0.602, "n_events": 155}
+{"run_id": "2026-06-26T22Z", "ts": "2026-06-26T22:00:00Z", "name": "Sudan", "index": 2.91, "raw": 0.994, "confidence": 0.541, "n_events": 158}

@@ -3,3 +3,4 @@
 {"run_id": "2026-06-26T16Z", "ts": "2026-06-26T16:00:00Z", "name": "Bahrain", "index": 2.43, "raw": 0.72, "confidence": 0.721, "n_events": 161}
 {"run_id": "2026-06-26T18Z", "ts": "2026-06-26T18:00:00Z", "name": "Bahrain", "index": 4.15, "raw": 1.796, "confidence": 0.05, "n_events": 1}
 {"run_id": "2026-06-26T20Z", "ts": "2026-06-26T20:00:00Z", "name": "Bahrain", "index": 2.33, "raw": 0.664, "confidence": 0.732, "n_events": 156}
+{"run_id": "2026-06-26T22Z", "ts": "2026-06-26T22:00:00Z", "name": "Bahrain", "index": 2.19, "raw": 0.592, "confidence": 0.753, "n_events": 160}
