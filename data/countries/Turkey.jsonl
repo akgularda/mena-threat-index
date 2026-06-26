@@ -1,2 +1,6 @@
 {"run_id": "2026-06-26T10Z", "ts": "2026-06-26T10:00:00Z", "name": "Turkey", "index": 2.19, "raw": 0.592, "confidence": 0.781, "n_events": 276}
-{"run_id": "2026-06-26T20Z", "ts": "2026-06-26T20:00:00Z", "name": "Turkey", "index": 2.2, "raw": 0.597, "confidence": 0.795, "n_events": 276}
+{"run_id": "2026-06-26T14Z", "ts": "2026-06-26T14:00:00Z", "name": "Turkey", "index": 2.15, "raw": 0.572, "confidence": 0.779, "n_events": 276}
+{"run_id": "2026-06-26T16Z", "ts": "2026-06-26T16:00:00Z", "name": "Turkey", "index": 2.27, "raw": 0.636, "confidence": 0.746, "n_events": 276}
+{"run_id": "2026-06-26T18Z", "ts": "2026-06-26T18:00:00Z", "name": "Turkey", "index": 3.57, "raw": 1.398, "confidence": 0.491, "n_events": 79}
+{"run_id": "2026-06-26T20Z", "ts": "2026-06-26T20:00:00Z", "name": "Turkey", "index": 2.26, "raw": 0.629, "confidence": 0.765, "n_events": 277}
+{"run_id": "2026-06-26T22Z", "ts": "2026-06-26T22:00:00Z", "name": "Turkey", "index": 2.03, "raw": 0.507, "confidence": 0.793, "n_events": 275}

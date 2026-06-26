@@ -1,2 +1,6 @@
 {"run_id": "2026-06-26T10Z", "ts": "2026-06-26T10:00:00Z", "name": "Iran", "index": 4.5, "raw": 2.054, "confidence": 0.05, "n_events": 221}
-{"run_id": "2026-06-26T20Z", "ts": "2026-06-26T20:00:00Z", "name": "Iran", "index": 4.7, "raw": 2.21, "confidence": 0.799, "n_events": 235}
+{"run_id": "2026-06-26T14Z", "ts": "2026-06-26T14:00:00Z", "name": "Iran", "index": 4.54, "raw": 2.086, "confidence": 0.05, "n_events": 233}
+{"run_id": "2026-06-26T16Z", "ts": "2026-06-26T16:00:00Z", "name": "Iran", "index": 4.92, "raw": 2.379, "confidence": 0.05, "n_events": 242}
+{"run_id": "2026-06-26T18Z", "ts": "2026-06-26T18:00:00Z", "name": "Iran", "index": 3.86, "raw": 1.591, "confidence": 0.274, "n_events": 136}
+{"run_id": "2026-06-26T20Z", "ts": "2026-06-26T20:00:00Z", "name": "Iran", "index": 4.66, "raw": 2.178, "confidence": 0.05, "n_events": 239}
+{"run_id": "2026-06-26T22Z", "ts": "2026-06-26T22:00:00Z", "name": "Iran", "index": 4.57, "raw": 2.103, "confidence": 0.173, "n_events": 241}

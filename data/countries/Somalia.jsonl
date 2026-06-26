@@ -1,2 +1,6 @@
 {"run_id": "2026-06-26T10Z", "ts": "2026-06-26T10:00:00Z", "name": "Somalia", "index": 1.63, "raw": 0.301, "confidence": 0.847, "n_events": 144}
-{"run_id": "2026-06-26T20Z", "ts": "2026-06-26T20:00:00Z", "name": "Somalia", "index": 1.71, "raw": 0.341, "confidence": 0.796, "n_events": 151}
+{"run_id": "2026-06-26T14Z", "ts": "2026-06-26T14:00:00Z", "name": "Somalia", "index": 1.83, "raw": 0.405, "confidence": 0.816, "n_events": 146}
+{"run_id": "2026-06-26T16Z", "ts": "2026-06-26T16:00:00Z", "name": "Somalia", "index": 1.76, "raw": 0.367, "confidence": 0.831, "n_events": 148}
+{"run_id": "2026-06-26T18Z", "ts": "2026-06-26T18:00:00Z", "name": "Somalia", "index": 1.56, "raw": 0.268, "confidence": 0.05, "n_events": 1}
+{"run_id": "2026-06-26T20Z", "ts": "2026-06-26T20:00:00Z", "name": "Somalia", "index": 1.69, "raw": 0.333, "confidence": 0.841, "n_events": 152}
+{"run_id": "2026-06-26T22Z", "ts": "2026-06-26T22:00:00Z", "name": "Somalia", "index": 1.65, "raw": 0.312, "confidence": 0.85, "n_events": 156}

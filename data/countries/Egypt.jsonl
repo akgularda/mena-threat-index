@@ -1,2 +1,6 @@
 {"run_id": "2026-06-26T10Z", "ts": "2026-06-26T10:00:00Z", "name": "Egypt", "index": 1.16, "raw": 0.074, "confidence": 0.907, "n_events": 187}
-{"run_id": "2026-06-26T20Z", "ts": "2026-06-26T20:00:00Z", "name": "Egypt", "index": 1.12, "raw": 0.057, "confidence": 0.796, "n_events": 204}
+{"run_id": "2026-06-26T14Z", "ts": "2026-06-26T14:00:00Z", "name": "Egypt", "index": 1.13, "raw": 0.059, "confidence": 0.915, "n_events": 195}
+{"run_id": "2026-06-26T16Z", "ts": "2026-06-26T16:00:00Z", "name": "Egypt", "index": 1.14, "raw": 0.065, "confidence": 0.916, "n_events": 194}
+{"run_id": "2026-06-26T18Z", "ts": "2026-06-26T18:00:00Z", "name": "Egypt", "index": 1.0, "raw": -0.101, "confidence": 0.787, "n_events": 15}
+{"run_id": "2026-06-26T20Z", "ts": "2026-06-26T20:00:00Z", "name": "Egypt", "index": 1.12, "raw": 0.056, "confidence": 0.922, "n_events": 205}
+{"run_id": "2026-06-26T22Z", "ts": "2026-06-26T22:00:00Z", "name": "Egypt", "index": 1.05, "raw": 0.022, "confidence": 0.955, "n_events": 207}
