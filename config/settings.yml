@@ -64,6 +64,8 @@ markets:
   min_paired_obs: 20        # native obs required to call a correlation "confirmed"
   min_abs_corr: 0.30        # |r| gate
   fdr_q: 0.10               # Benjamini-Hochberg false-discovery rate
+  lag_selection: sidak      # correct best-of-N-lags search: sidak (default) |
+                            # preregistered (lags 0,1 only) | best (legacy, no correction)
   sign_stability_min: 0.60
   beta_t_min: 1.5           # |beta|/SE gate before publishing a market forecast
   bnti_prior_k: 20          # shrinkage of MENA beta toward BNTI beta (in obs)

@@ -84,6 +84,19 @@ def _bh_significant(pvals, q):
     return passed
 
 
+def _sidak(p, n):
+    """Sidak correction of a p-value for selecting the best of n searched lags.
+
+    Choosing the max-|r| lag inflates significance (a garden-of-forking-paths);
+    this deflates the p-value back to account for the n looks (METHODOLOGY_REVIEW
+    F10). Benjamini-Hochberg already controls FDR across instruments; this closes
+    the lag-search gap within each instrument.
+    """
+    if n <= 1:
+        return p
+    return clip(1.0 - (1.0 - p) ** n, 0.0, 1.0)
+
+
 # ---------- price fetching ----------
 
 def _fetch_yahoo(sess, symbol, log):
@@ -173,6 +186,9 @@ def _analyse(inst, prices, idx_daily, cfg, index_forecast, current_index, log):
     beta_t_min = float(mk.get("beta_t_min", 1.5))
     inflate = float(mk.get("model_risk_inflation", 1.5))
     z = 1.2815
+    lag_sel = str(mk.get("lag_selection", "sidak")).lower()
+    if lag_sel == "preregistered":
+        lag_set = [lg for lg in lag_set if lg in (0, 1)] or [0]
 
     pdates = sorted(prices.keys())
     if len(pdates) < 5:
@@ -231,15 +247,21 @@ def _analyse(inst, prices, idx_daily, cfg, index_forecast, current_index, log):
         return idates[j]
 
     best = None
+    n_eval = 0
     for lag in lag_set:
         xs, ys, nnat = aligned(lag)
         if len(xs) < 5:
             continue
+        n_eval += 1
         r, p = _pearson(xs, ys)
         if best is None or abs(r) > abs(best["r"]):
             best = {"lag": lag, "r": r, "p": p, "xs": xs, "ys": ys, "n": len(xs), "nnat": nnat}
     if best is None:
         return None
+    # control for the lag search before the p-value is used downstream (gate + BH)
+    best["p_raw"] = best["p"]
+    if lag_sel == "sidak":
+        best["p"] = _sidak(best["p"], n_eval)
 
     beta, alpha, r2, se_beta = _ols(best["xs"], best["ys"])
     n_obs = best["n"]
@@ -297,6 +319,7 @@ def _analyse(inst, prices, idx_daily, cfg, index_forecast, current_index, log):
         "asset_class": inst.asset_class, "currency": inst.currency,
         "last": round(last, 4), "change_pct": round(change_pct, 2),
         "correlation": round(best["r"], 3), "p_value": round(best["p"], 4),
+        "p_value_raw": round(best["p_raw"], 4), "lag_selection": lag_sel,
         "beta": round(beta, 4), "beta_se": round(se_beta, 4) if se_beta != float("inf") else None,
         "r2": round(r2, 3), "best_lag_days": best["lag"],
         "n_obs": n_obs, "n_native": n_native,
