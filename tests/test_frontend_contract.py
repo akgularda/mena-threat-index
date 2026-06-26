@@ -30,3 +30,13 @@ def test_transform_live_accepts_pipeline_briefing_bullets():
         }
     """)
     subprocess.run([node, "-e", script], cwd=ROOT, check=True)
+
+
+def test_overview_removes_model_badge_and_constrains_ranking_menu():
+    html = open(os.path.join(ROOT, "index.html"), encoding="utf-8").read()
+
+    assert "v2.0.0" not in html
+    assert "{{ modelLabel }}" not in html
+    assert "data-ranking-menu" in html
+    assert "max-height:460px" in html
+    assert "overflow-y:auto" in html

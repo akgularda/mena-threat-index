@@ -37,7 +37,6 @@
   <div style="border-bottom:1px solid #221f18;background:#120f0b">
     <div style="max-width:1180px;margin:0 auto;padding:7px 28px;display:flex;justify-content:space-between;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.13em;color:#6b6457;text-transform:uppercase">
       <span>Monarch Castle Technologies &nbsp;&middot;&nbsp; Defense Intelligence</span>
-      <span style="display:flex;gap:18px;align-items:center"><span>v2.0.0</span><span style="color:#4f4940">|</span><span>{{ modelLabel }}</span></span>
     </div>
   </div>
 
@@ -168,19 +167,19 @@
             <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.15em;color:#5a5448;text-transform:uppercase">Loading regional map…</div>
           </div>
         </div>
-        <div>
-          <div style="padding:14px 18px;border-bottom:1px solid #221f18;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;color:#7d7565;text-transform:uppercase;display:flex;justify-content:space-between">
-            <span>Country ranking</span><span>Index</span>
+        <div data-ranking-menu style="max-height:460px;overflow-y:auto;background:#15130f">
+          <div style="position:sticky;top:0;z-index:2;padding:12px 16px;border-bottom:1px solid #221f18;background:#191711;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;color:#7d7565;text-transform:uppercase;display:flex;justify-content:space-between">
+            <span>Country menu</span><span>Index</span>
           </div>
-          <sc-for list="{{ countriesList }}" as="c" hint-placeholder-count="7">
-            <div class="bnti-row" onClick="{{ c.onOpen }}" style="display:flex;align-items:center;gap:13px;padding:13px 18px;border-bottom:1px solid #1c1a14;cursor:pointer;transition:background .12s">
-              <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#7d7565;width:18px;text-align:right">{{ c.rank }}</span>
+          <sc-for list="{{ countriesList }}" as="c" hint-placeholder-count="12">
+            <div class="bnti-row" onClick="{{ c.onOpen }}" style="display:grid;grid-template-columns:22px 22px minmax(0,1fr) 42px;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid #1c1a14;cursor:pointer;transition:background .12s">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#7d7565;text-align:right">{{ c.rank }}</span>
               <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;color:#15130f;background:{{ c.color }};padding:2px 5px;border-radius:1px">{{ c.code }}</span>
-              <div style="flex:1;min-width:0">
-                <div style="font-family:'Spectral',serif;font-size:15px;color:#ece6d8;line-height:1.1">{{ c.name }}</div>
+              <div style="min-width:0">
+                <div style="font-family:'Spectral',serif;font-size:14px;color:#ece6d8;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.name }}</div>
                 <div style="height:3px;background:#26221b;margin-top:6px;position:relative"><div style="position:absolute;left:0;top:0;bottom:0;width: {{ c.pct }}%;background:{{ c.color }}"></div></div>
               </div>
-              <span style="font-family:'IBM Plex Mono',monospace;font-size:16px;color:{{ c.color }};width:42px;text-align:right">{{ c.index }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:14px;color:{{ c.color }};text-align:right">{{ c.index }}</span>
             </div>
           </sc-for>
         </div>
@@ -961,7 +960,7 @@ class Component extends DCLogic {
       const isFav=S.favs.includes(o.name);
       return { name:o.name, code:o.code, index:o.index.toFixed(2), raw:o.raw.toFixed(2),
         color:this.color(o.index), status:this.label(o.index), pct:Math.max(2,((o.index-1)/9*100)).toFixed(1),
-        rank:String(i+1).padStart(2,'0'), eventCount:counts[o.name]||0, topCat:top, latest,
+        rank:String(i+1), eventCount:counts[o.name]||0, topCat:top, latest,
         isFav, favGlyph:isFav?'★':'☆', favColor:isFav?accent:'#5a5448', spark:this.spark((o.history&&o.history.length?o.history.map(p=>p.index):this.chist(o.name,o.index))),
         onOpen:()=>this.go('country',{activeCountry:o.name}), onFav:(e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); this.toggleFav(o.name); } };
     };
@@ -1044,7 +1043,6 @@ class Component extends DCLogic {
     return {
       accent,
       nav,
-      modelLabel: D.meta && D.meta.model ? 'Model · '+D.meta.model : 'Model · deterministic',
       // route flags
       isOverview: route==='overview', isCountries: route==='countries', isCountry: route==='country',
       isMarkets: route==='markets', isMethodology: route==='methodology', isAbout: route==='about',
