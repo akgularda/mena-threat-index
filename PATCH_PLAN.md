@@ -2,7 +2,7 @@
 
 **Status:** Each item is scoped so it can be implemented, reviewed, and reverted independently. Findings (F#) and recommendations (R#) reference [`METHODOLOGY_REVIEW.md`](./METHODOLOGY_REVIEW.md).
 
-**Implementation status (branch `methodology-review`):** ✅ **P1–P9 (Tier 1 + Tier 2)** implemented, each test-first with an atomic commit; full `pytest` suite green (34 tests). ⬜ **P10–P13 (Tier 3, optional re-grounding)** not yet implemented. All shipped changes default to the new, corrected behaviour where it is a defect fix (P1, P2, P4, P5, P8) and are config-selectable back to the legacy behaviour where the change is model-altering (`confidence_model`, `lag_selection`, `bootstrap_enabled`).
+**Implementation status (branch `methodology-review`):** ✅ **P1–P12** implemented, each test-first with an atomic commit; full `pytest` suite green (37 tests). ⬜ **P13** (local-language lexicons) deferred — a large content task best done as its own effort with native-speaker review. Defect fixes (P1, P2, P4, P5, P8) ship as the new default; model-altering options are config-selectable back to legacy (`confidence_model`, `lag_selection`, `bootstrap_enabled`, `weight_set`, `saturation_scale`/`saturation_gain`). The robustness of the unanchored constants is reported by `scripts/sensitivity.py` → `docs/methodology_sensitivity.md`.
 
 **Ground rules carried through every item:**
 - The system stays **deterministic and explainable**; the only ML is the *existing optional* LLM refinement.
