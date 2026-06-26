@@ -23,6 +23,8 @@ class Article:
     country: str
     lang: str
     _tokens: set = field(default_factory=set, repr=False)
+    _sources: set = field(default_factory=set, repr=False)
+    corroboration: int = 1
 
 
 def _gnews_url(q: str, hl: str, gl: str, ceid: str, when_days: int) -> str:
@@ -60,6 +62,47 @@ def _entry_to_article(e, source: str, country: str, lang: str) -> Article | None
     title = strip_source_suffix(raw_title)
     return Article(title=title, raw_title=raw_title, link=link, published=published,
                    source=src, country=country, lang=lang, _tokens=token_set(title))
+
+
+def _dedupe(windowed, sim):
+    """Per-country de-duplication (exact title/url key, then fuzzy Jaccard).
+
+    Counts the distinct corroborating sources of each kept article on
+    `corroboration` (>=1), so the score's confidence can reward cross-source
+    agreement instead of category homogeneity (METHODOLOGY_REVIEW F7 / P2).
+    Returns (kept_articles, dropped_count).
+    """
+    by_country: dict = {}
+    seen_keys: dict = {}
+    kept_by_key: dict = {}
+    dropped = 0
+    for a in windowed:
+        bucket = by_country.setdefault(a.country, [])
+        keys = seen_keys.setdefault(a.country, set())
+        kmap = kept_by_key.setdefault(a.country, {})
+        k_title = title_key(a.title)
+        k_url = canon_url(a.link)
+        kept = kmap.get(k_title) or (kmap.get(k_url) if k_url else None)
+        if kept is None:
+            for b in bucket:
+                if jaccard(a._tokens, b._tokens) >= sim:
+                    kept = b
+                    break
+        if kept is not None:
+            kept._sources.add(a.source)
+            dropped += 1
+            continue
+        a._sources.add(a.source)
+        keys.add(k_title)
+        kmap[k_title] = a
+        if k_url:
+            keys.add(k_url)
+            kmap[k_url] = a
+        bucket.append(a)
+    articles = [a for bucket in by_country.values() for a in bucket]
+    for a in articles:
+        a.corroboration = len(a._sources)
+    return articles, dropped
 
 
 # A few names need an explicit exclusion so a longer name doesn't trigger them.
@@ -160,31 +203,8 @@ def fetch_all(cfg: Config, log) -> tuple[list, dict]:
             stats["dropped_old"] += 1
 
     # --- de-duplicate, per country (exact title/url key, then fuzzy) ---
-    by_country: dict[str, list[Article]] = {}
-    seen_keys: dict[str, set] = {}
-    for a in windowed:
-        bucket = by_country.setdefault(a.country, [])
-        keys = seen_keys.setdefault(a.country, set())
-        k_title = title_key(a.title)
-        k_url = canon_url(a.link)
-        if k_title in keys or (k_url and k_url in keys):
-            stats["dropped_dup"] += 1
-            continue
-        # fuzzy: compare against already-kept titles in this country
-        dup = False
-        for b in bucket:
-            if jaccard(a._tokens, b._tokens) >= sim:
-                dup = True
-                break
-        if dup:
-            stats["dropped_dup"] += 1
-            continue
-        keys.add(k_title)
-        if k_url:
-            keys.add(k_url)
-        bucket.append(a)
-
-    articles = [a for bucket in by_country.values() for a in bucket]
+    articles, dropped_dup = _dedupe(windowed, sim)
+    stats["dropped_dup"] += dropped_dup
     stats["kept"] = len(articles)
     log.info("feeds: ok=%d fail=%d raw=%d kept=%d (old=%d dup=%d)",
              stats["feeds_ok"], stats["feeds_fail"], stats["raw"], stats["kept"],

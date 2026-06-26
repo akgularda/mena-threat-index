@@ -65,6 +65,7 @@ def categorize(articles, cfg: Config, log) -> list:
             "category": cat,
             "weight": cfg.cat_weight.get(cat, 0.0),
             "credibility": source_credibility(cfg, a.source),
+            "corroboration": getattr(a, "corroboration", 1),
         })
 
     # --- optional LLM refinement ---

@@ -19,3 +19,29 @@ def test_empty_is_baseline():
     r = score.score([], cfg)
     assert abs(r["countries"]["Egypt"]["index"] - 1.0) < 1e-6
     assert r["status"] == "STABLE"
+
+
+# ---- P2: confidence no longer punishes topical breadth (METHODOLOGY_REVIEW F7) ----
+
+def _mixed(country="Iran", n=8):
+    """A high-volume, multi-category, multi-source, corroborated country —
+    exactly the shape that drove Iran to confidence 0.05 under the old model."""
+    cats = [("military_conflict", 8.0), ("diplomatic_tensions", 2.5),
+            ("humanitarian_crisis", 3.0), ("neutral", 0.0)]
+    srcs = ["Reuters", "AP", "BBC", "Al Jazeera"]
+    evs = []
+    for cat, w in cats:
+        for i in range(n):
+            e = _ev(country, cat, w, src=srcs[i % len(srcs)])
+            e["corroboration"] = 2
+            evs.append(e)
+    return evs
+
+
+def test_confidence_not_floored_for_broad_wellsourced_country():
+    cfg = config.load()
+    new = score.score(_mixed(), cfg)["countries"]["Iran"]["confidence"]      # default v_d_c
+    cfg.settings["score"]["confidence_model"] = "v_d_a"
+    legacy = score.score(_mixed(), cfg)["countries"]["Iran"]["confidence"]   # old homogeneity term
+    assert new > 0.6        # a broad, well-sourced country is no longer floored
+    assert legacy < new     # the old "agreement" term dragged confidence down

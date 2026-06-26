@@ -25,6 +25,8 @@ score:
   spike_min_jump: 1.0       # |diff| must exceed max(this, 2*sigma) to count as a spike
   conf_volume_scale: 4.0    # N0 in volume-adequacy = 1 - exp(-N_eff / N0)
   conf_diversity_target: 4  # target number of distinct sources for full diversity
+  confidence_model: v_d_c   # v_d_c (volume x diversity x corroboration, default) |
+                            # v_d (volume x diversity) | v_d_a (legacy homogeneity term)
   freshness_half_life_h: 12 # composite freshness = 0.5 ** (staleness_h / half_life)
   baseline_index: 1.0       # floor index for a country with no qualifying events
 
