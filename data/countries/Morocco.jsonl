@@ -1,3 +1,4 @@
 {"run_id": "2026-06-26T10Z", "ts": "2026-06-26T10:00:00Z", "name": "Morocco", "index": 1.11, "raw": 0.052, "confidence": 0.938, "n_events": 197}
 {"run_id": "2026-06-26T14Z", "ts": "2026-06-26T14:00:00Z", "name": "Morocco", "index": 1.1, "raw": 0.047, "confidence": 0.941, "n_events": 190}
 {"run_id": "2026-06-26T16Z", "ts": "2026-06-26T16:00:00Z", "name": "Morocco", "index": 1.27, "raw": 0.126, "confidence": 0.915, "n_events": 191}
+{"run_id": "2026-06-26T18Z", "ts": "2026-06-26T18:00:00Z", "name": "Morocco", "index": 3.06, "raw": 1.081, "confidence": 0.391, "n_events": 2}
