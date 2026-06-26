@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+.pytest_cache/
+.mypy_cache/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.thumbnail
+*.swp
+
+# Secrets — NEVER commit the NVIDIA key or any credentials
+secrets.*
+*.secret
+.secrets/
+
+# Local scratch
+*.tmp
+mena_data.json.tmp
+HANDOFF.md
+STARTER_PROMPT.md
+BNTI.dc.html
+.planning/
+screenshots/

@@ -1,0 +1,74 @@
+# Threat categories, fixed weights, keyword lexicon, and source credibility.
+# Weights never change between runs (auditability). The keyword engine assigns
+# the FIRST category whose pattern matches (order matters: most severe first).
+
+categories:
+  - key: military_conflict
+    label: Military conflict
+    weight: 8.0
+    # airstrikes, shelling, invasions, open warfare
+    keywords: '\b(war|airstrike|air strike|shelling|artillery|offensive|invasion|invade|frontline|front line|warplane|bombard|missile strike|rocket attack|ground assault|combat|battle|clashes? erupt|armed clash|incursion|fighter jet|drone strike)\b'
+
+  - key: terrorism
+    label: Terrorism
+    weight: 7.0
+    keywords: '\b(terror|terrorist|suicide bomb(?:er)?|car bomb|ied|isis|islamic state|daesh|al[- ]?qaeda|al[- ]?shabaab|militant attack|extremist|insurgent|jihadist|hostage|kidnapp?ing)\b'
+
+  - key: border_security
+    label: Border security
+    weight: 5.0
+    keywords: '\b(border|frontier|hormuz|strait|bab[- ]?el[- ]?mandeb|suez|checkpoint|crossing|troop|military build|mobili[sz]e|deploy|naval|warship|coast guard|maritime|airspace|no[- ]?fly|ceasefire|cease[- ]?fire|truce|de[- ]?escalat)\b'
+
+  - key: political_instability
+    label: Political instability
+    weight: 4.0
+    keywords: '\b(coup|protest|unrest|riot|uprising|revolt|arrest|warrant|impeach|resign|ousted|election|referendum|crackdown|dissident|opposition|trial|sanction|martial law|state of emergency|government collapse|no[- ]?confidence)\b'
+
+  - key: humanitarian_crisis
+    label: Humanitarian crisis
+    weight: 3.0
+    keywords: '\b(humanitarian|refugee|displace|migrant|deport|famine|starv|drought|flood|earthquake|cholera|outbreak|epidemic|aid (convoy|block)|blockade|water crisis|civilian casualt|killed|wounded|death toll)\b'
+
+  - key: diplomatic_tensions
+    label: Diplomatic tensions
+    weight: 2.5
+    keywords: '\b(diplomat|summit|talks|negotiat|envoy|ambassador|recall|expel|condemn|warn|threat|dispute|tension|standoff|nuclear|enrich|embassy|foreign minister|accuse|escalat)\b'
+
+  - key: trade_agreement
+    label: Trade & de-escalation
+    weight: -2.0
+    keywords: '\b(trade (deal|agreement|pact)|investment|economic cooperation|normali[sz]e relations|reopen|reconciliation|peace (deal|accord|talks succeed)|sign(ed)? agreement|partnership|memorandum|mou\b|pipeline deal)\b'
+
+  - key: neutral
+    label: Neutral / context
+    weight: 0.0
+    keywords: ''   # fallback — assigned when nothing else matches
+
+# Source credibility multiplier (applied to the AVERAGING weight, not to severity).
+# Matched by case-insensitive substring against the article's source name/host.
+# Anything not listed uses score.credibility_default (0.60).
+source_credibility:
+  reuters: 1.0
+  associated press: 1.0
+  "ap ": 1.0
+  agence france: 1.0
+  afp: 1.0
+  bbc: 1.0
+  al jazeera: 0.9
+  middle east eye: 0.85
+  the new arab: 0.85
+  al-monitor: 0.9
+  al monitor: 0.9
+  the national: 0.85
+  arab news: 0.8
+  jerusalem post: 0.8
+  times of israel: 0.85
+  anadolu: 0.8
+  daily sabah: 0.7
+  tehran times: 0.6
+  press tv: 0.5
+  saudi gazette: 0.75
+  egypt independent: 0.75
+  times of oman: 0.75
+  hurriyet: 0.8
+  "google news": 0.6

@@ -1,0 +1,13 @@
+{"run_id": "seed-2026-06-24T07:51:00Z", "ts": "2026-06-24T07:51:00Z", "index": 3.34, "raw": null, "status": null, "confidence": null, "n_events": null, "forecast_next": null, "seed": true}
+{"run_id": "seed-2026-06-24T10:59:00Z", "ts": "2026-06-24T10:59:00Z", "index": 3.4, "raw": null, "status": null, "confidence": null, "n_events": null, "forecast_next": null, "seed": true}
+{"run_id": "seed-2026-06-24T14:35:00Z", "ts": "2026-06-24T14:35:00Z", "index": 3.5, "raw": null, "status": null, "confidence": null, "n_events": null, "forecast_next": null, "seed": true}
+{"run_id": "seed-2026-06-24T18:06:00Z", "ts": "2026-06-24T18:06:00Z", "index": 3.7, "raw": null, "status": null, "confidence": null, "n_events": null, "forecast_next": null, "seed": true}
+{"run_id": "seed-2026-06-24T19:48:00Z", "ts": "2026-06-24T19:48:00Z", "index": 3.26, "raw": null, "status": null, "confidence": null, "n_events": null, "forecast_next": null, "seed": true}
+{"run_id": "seed-2026-06-24T21:35:00Z", "ts": "2026-06-24T21:35:00Z", "index": 3.32, "raw": null, "status": null, "confidence": null, "n_events": null, "forecast_next": null, "seed": true}
+{"run_id": "seed-2026-06-24T23:22:00Z", "ts": "2026-06-24T23:22:00Z", "index": 3.56, "raw": null, "status": null, "confidence": null, "n_events": null, "forecast_next": null, "seed": true}
+{"run_id": "seed-2026-06-25T14:30:00Z", "ts": "2026-06-25T14:30:00Z", "index": 5.26, "raw": null, "status": null, "confidence": null, "n_events": null, "forecast_next": null, "seed": true}
+{"run_id": "seed-2026-06-25T18:26:00Z", "ts": "2026-06-25T18:26:00Z", "index": 5.25, "raw": null, "status": null, "confidence": null, "n_events": null, "forecast_next": null, "seed": true}
+{"run_id": "seed-2026-06-25T21:48:00Z", "ts": "2026-06-25T21:48:00Z", "index": 4.21, "raw": null, "status": null, "confidence": null, "n_events": null, "forecast_next": null, "seed": true}
+{"run_id": "seed-2026-06-25T23:36:00Z", "ts": "2026-06-25T23:36:00Z", "index": 4.7, "raw": null, "status": null, "confidence": null, "n_events": null, "forecast_next": null, "seed": true}
+{"run_id": "seed-2026-06-26T02:52:00Z", "ts": "2026-06-26T02:52:00Z", "index": 3.84, "raw": null, "status": null, "confidence": null, "n_events": null, "forecast_next": null, "seed": true}
+{"run_id": "2026-06-26T10Z", "ts": "2026-06-26T10:00:00Z", "index": 2.69, "raw": 2.15, "status": "STABLE", "confidence": 0.742, "n_events": 4175, "forecast_next": 3.37, "seed": false}

@@ -1,0 +1,80 @@
+# MENA Threat Index — pipeline settings (all tunable constants live here)
+# Edit these to retune the methodology without touching code.
+
+region: MENA
+schema_version: "2.0"
+
+# ---- Ingestion ----
+ingest:
+  window_hours: 72          # keep articles published within this window
+  score_window_hours: 48    # events older than this don't contribute to the score
+  per_feed_timeout_s: 20
+  max_items_per_feed: 120
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+  dedupe_similarity: 0.90   # fuzzy title-similarity threshold for de-duplication
+  coverage_floor: 0.30      # withhold the run if < this fraction of countries have >=1 event
+
+# ---- Scoring ----
+score:
+  recency_half_life_h: 18   # event weight multiplier = 0.5 ** (age_h / half_life)
+  credibility_default: 0.60 # used when a source isn't in the credibility table
+  shrink_k: 3               # empirical-Bayes pseudo-count toward country baseline
+  baseline_window_days: 14  # trailing window for the per-country prior mean
+  ewma_alpha: 0.20          # composite smoothing factor (normal regime)
+  ewma_alpha_spike: 0.50    # smoothing factor when a genuine jump is detected
+  spike_min_jump: 1.0       # |diff| must exceed max(this, 2*sigma) to count as a spike
+  conf_volume_scale: 4.0    # N0 in volume-adequacy = 1 - exp(-N_eff / N0)
+  conf_diversity_target: 4  # target number of distinct sources for full diversity
+  freshness_half_life_h: 12 # composite freshness = 0.5 ** (staleness_h / half_life)
+  baseline_index: 1.0       # floor index for a country with no qualifying events
+
+# ---- Thresholds (status bands) ----
+thresholds:
+  elevated: 4.0
+  critical: 7.0
+
+# ---- Forecast ----
+forecast:
+  horizon_hours: 24
+  step_hours: 2
+  phi_prior: 0.90           # AR(1) persistence shrinkage prior
+  phi_shrink_k: 10          # strength of the shrinkage prior (in observations)
+  min_points_ar1: 12        # >= this many points -> AR(1); else cold-start ladder
+  min_points_holt: 5        # >= this and < ar1 -> damped Holt
+  holt_phi: 0.80
+  band_z: 1.2815            # one-sided 90% normal quantile (=> 80% two-sided band)
+  precision_range: 3.0      # R in precision = 1 - halfwidth/R
+
+# ---- Markets ----
+markets:
+  correlation_window_days: 120
+  price_history_days: 200
+  lag_set: [-3, -2, -1, 0, 1, 2, 3]   # cross-correlation lags (index leads market at +)
+  rolling_window: 25
+  bootstrap_resamples: 1000
+  bootstrap_block: 5
+  min_paired_obs: 20        # native obs required to call a correlation "confirmed"
+  min_abs_corr: 0.30        # |r| gate
+  fdr_q: 0.10               # Benjamini-Hochberg false-discovery rate
+  sign_stability_min: 0.60
+  beta_t_min: 1.5           # |beta|/SE gate before publishing a market forecast
+  bnti_prior_k: 20          # shrinkage of MENA beta toward BNTI beta (in obs)
+  model_risk_inflation: 1.5 # widen market forecast bands by this factor
+  forecast_days: [1, 3, 5]
+
+# ---- History / retention ----
+history:
+  published_days: 90        # how much native-cadence history to embed in mena_data.json
+  retention_days: 120       # older than this gets downsampled to archive
+  archive_downsample_h: 6   # archived cadence
+
+# ---- LLM (NVIDIA, OpenAI-compatible) — key comes from env NVIDIA_API_KEY only ----
+llm:
+  enabled: true             # if false, never call the LLM even when a key is present
+  base_url: "https://integrate.api.nvidia.com/v1"
+  model: "meta/llama-3.3-70b-instruct"
+  temperature: 0.0
+  batch_size: 25
+  timeout_s: 40
+  max_retries: 2
+  use_for_briefing: true

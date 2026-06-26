@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:#15130f;color:#ece6d8;font-family:'IBM Plex Sans',sans-serif;-webkit-font-smoothing:antialiased;font-size:15px;line-height:1.5}
+  a{color:inherit;text-decoration:none}
+  ::selection{background:#c9a24b;color:#15130f}
+  @keyframes bntiPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.82)}}
+  .bnti-link:hover{color:#ece6d8 !important}
+  .bnti-row:hover{background:#1f1c16 !important}
+  .bnti-feed:hover{background:#1c1a14 !important}
+  .bnti-card:hover{border-color:#3a352a !important}
+  input::placeholder{color:#6b6457}
+  input:focus{outline:none;border-color:#c9a24b !important}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:#2c2820;border-radius:0}
+  ::-webkit-scrollbar-track{background:#15130f}
+</style>
+</helmet>
+<div style="min-height:100vh;background:#15130f">
+
+  <!-- utility strip -->
+  <div style="border-bottom:1px solid #221f18;background:#120f0b">
+    <div style="max-width:1180px;margin:0 auto;padding:7px 28px;display:flex;justify-content:space-between;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.13em;color:#6b6457;text-transform:uppercase">
+      <span>Monarch Castle Technologies &nbsp;&middot;&nbsp; Defense Intelligence</span>
+      <span style="display:flex;gap:18px;align-items:center"><span>v2.0.0</span><span style="color:#4f4940">|</span><span>{{ modelLabel }}</span></span>
+    </div>
+  </div>
+
+  <!-- masthead + nav -->
+  <header style="border-bottom:1px solid #2c2820;background:#15130f;position:sticky;top:0;z-index:40">
+    <div style="max-width:1180px;margin:0 auto;padding:16px 28px;display:flex;align-items:center;justify-content:space-between;gap:24px">
+      <div onClick="{{ goOverview }}" style="display:flex;align-items:center;gap:13px;cursor:pointer">
+        <div style="width:30px;height:30px;border:1px solid #463f31;display:flex;align-items:center;justify-content:center;position:relative">
+          <div style="width:9px;height:9px;background: {{ accent }};transform:rotate(45deg)"></div>
+        </div>
+        <div style="line-height:1.05">
+          <div style="font-family:'Spectral',serif;font-size:19px;font-weight:600;letter-spacing:.01em;color:#ece6d8">MENA Threat Index</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.22em;color:#7d7565;text-transform:uppercase;margin-top:2px">M&middot;T&middot;I &nbsp; Regional Monitor</div>
+        </div>
+      </div>
+      <nav style="display:flex;align-items:center;gap:26px">
+        <sc-for list="{{ nav }}" as="item" hint-placeholder-count="4">
+          <div class="bnti-link" onClick="{{ item.onClick }}" style="cursor:pointer;font-size:13px;font-weight:500;letter-spacing:.01em;padding:6px 0;border-bottom:2px solid {{ item.border }};color: {{ item.color }};transition:color .15s">{{ item.label }}</div>
+        </sc-for>
+        <sc-if value="{{ isLoggedIn }}" hint-placeholder-val="{{ false }}">
+          <div onClick="{{ goAccount }}" class="bnti-link" style="cursor:pointer;display:flex;align-items:center;gap:9px;padding-left:10px;border-left:1px solid #2c2820">
+            <div style="width:26px;height:26px;border-radius:50%;background:#26221b;border:1px solid #463f31;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#c9a24b">{{ userInitial }}</div>
+            <span style="font-size:12.5px;color:#b8b0a0">{{ userName }}</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ isLoggedOut }}" hint-placeholder-val="{{ true }}">
+          <div onClick="{{ goLogin }}" style="cursor:pointer;font-size:12.5px;font-weight:500;color:#15130f;background:#ece6d8;padding:7px 15px;border-radius:1px">Sign in</div>
+        </sc-if>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ============ OVERVIEW ============ -->
+  <sc-if value="{{ isOverview }}" hint-placeholder-val="{{ true }}">
+  <main data-screen-label="Overview" style="max-width:1180px;margin:0 auto;padding:0 28px">
+
+    <!-- edition strip -->
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid #221f18;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:11px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:#9a9284;text-transform:uppercase">
+        <span style="width:7px;height:7px;border-radius:50%;background:{{ liveColor }};display:inline-block;animation:bntiPulse 1.8s infinite"></span>
+        {{ liveLabel }}
+      </div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;color:#7d7565;display:flex;gap:18px;flex-wrap:wrap">
+        <span>Updated {{ updatedLabel }}</span><span style="color:#4f4940">/</span><span>Next refresh {{ nextLabel }}</span>
+      </div>
+    </div>
+
+    <!-- hero: composite index + briefing -->
+    <section style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:0;border-bottom:1px solid #2c2820">
+      <!-- index -->
+      <div style="padding:36px 40px 36px 0;border-right:1px solid #221f18">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.2em;color:#7d7565;text-transform:uppercase;margin-bottom:18px">Composite MENA Threat Index</div>
+        <div style="display:flex;align-items:flex-end;gap:16px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:78px;line-height:.82;font-weight:500;color:#ece6d8;letter-spacing:-.02em">{{ mainIndex }}</div>
+          <div style="padding-bottom:8px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:15px;color:#7d7565">/ 10.0</div>
+            <div style="margin-top:8px;display:inline-flex;align-items:center;gap:7px;padding:4px 10px;border:1px solid {{ statusColor }};border-radius:1px">
+              <span style="width:6px;height:6px;border-radius:50%;background:{{ statusColor }}"></span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;color:{{ statusColor }}">{{ statusLabel }}</span>
+            </div>
+          </div>
+        </div>
+        <!-- scale -->
+        <div style="margin-top:26px">
+          <div style="position:relative;height:8px;display:flex;gap:2px">
+            <div style="flex:3;background:#6fae7e;opacity:.22"></div>
+            <div style="flex:3;background:#d8a13f;opacity:.22"></div>
+            <div style="flex:3;background:#cf5b4e;opacity:.22"></div>
+            <div style="position:absolute;top:-4px;bottom:-4px;width:2px;background:#ece6d8;left: {{ mainPct }}%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.1em;color:#6b6457;margin-top:7px;text-transform:uppercase">
+            <span>1 · Stable</span><span>4 · Elevated</span><span>7 · Critical</span><span>10</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:28px;margin-top:26px">
+          <div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:20px;color:{{ deltaColor }}">{{ deltaLabel }}</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.12em;color:#7d7565;text-transform:uppercase;margin-top:3px">vs prior reading</div>
+          </div>
+          <div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:20px;color:#ece6d8">{{ totalSignals }}</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.12em;color:#7d7565;text-transform:uppercase;margin-top:3px">Active signals</div>
+          </div>
+          <div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:20px;color:#ece6d8">24</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.12em;color:#7d7565;text-transform:uppercase;margin-top:3px">Countries</div>
+          </div>
+        </div>
+      </div>
+      <!-- briefing -->
+      <div style="padding:36px 0 36px 40px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.2em;color:#7d7565;text-transform:uppercase">Regional briefing &middot; {{ briefWindow }} window</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#6b6457">{{ briefSources }}</div>
+        </div>
+        <h1 style="font-family:'Spectral',serif;font-weight:600;font-size:29px;line-height:1.22;color:#ece6d8;margin:0 0 22px 0;letter-spacing:-.005em;text-wrap:pretty">{{ briefHeadline }}</h1>
+        <div style="display:flex;flex-direction:column;gap:13px">
+          <sc-for list="{{ briefBullets }}" as="b" hint-placeholder-count="3">
+            <div style="display:flex;gap:13px;align-items:flex-start">
+              <span style="width:5px;height:5px;border-radius:50%;background:{{ b.color }};margin-top:8px;flex-shrink:0"></span>
+              <span style="font-size:14.5px;line-height:1.55;color:#c4bcac;text-wrap:pretty">{{ b.text }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="margin-top:24px;padding-top:16px;border-top:1px solid #221f18;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.06em;color:#6b6457">Next briefing refresh &middot; {{ briefRefresh }}</span>
+          <div onClick="{{ openShare }}" class="bnti-link" style="cursor:pointer;display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.1em;color:#c9a24b;text-transform:uppercase;border:1px solid #463f31;padding:7px 12px">
+            <span style="font-size:12px;line-height:1">⤴</span> Share briefing
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- map + ranked rail -->
+    <section style="padding:34px 0 8px 0">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:14px">
+        <h2 style="font-family:'Spectral',serif;font-weight:600;font-size:22px;color:#ece6d8;margin:0">Regional threat map</h2>
+        <div style="display:flex;gap:18px;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.08em;color:#9a9284;text-transform:uppercase;flex-wrap:wrap">
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;background:#6fae7e"></span>Stable</span>
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;background:#d8a13f"></span>Elevated</span>
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;background:#cf5b4e"></span>Critical</span>
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border:1px solid #c9a24b"></span>MENA · tracked</span>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:0;border:1px solid #2c2820;background:#191711">
+        <div style="border-right:1px solid #2c2820;position:relative;min-height:460px;background:#15130f">
+          <div ref="{{ setMapEl }}" style="width:100%;height:460px;position:relative">
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.15em;color:#5a5448;text-transform:uppercase">Loading regional map…</div>
+          </div>
+        </div>
+        <div>
+          <div style="padding:14px 18px;border-bottom:1px solid #221f18;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;color:#7d7565;text-transform:uppercase;display:flex;justify-content:space-between">
+            <span>Country ranking</span><span>Index</span>
+          </div>
+          <sc-for list="{{ countriesList }}" as="c" hint-placeholder-count="7">
+            <div class="bnti-row" onClick="{{ c.onOpen }}" style="display:flex;align-items:center;gap:13px;padding:13px 18px;border-bottom:1px solid #1c1a14;cursor:pointer;transition:background .12s">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#7d7565;width:18px;text-align:right">{{ c.rank }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;color:#15130f;background:{{ c.color }};padding:2px 5px;border-radius:1px">{{ c.code }}</span>
+              <div style="flex:1;min-width:0">
+                <div style="font-family:'Spectral',serif;font-size:15px;color:#ece6d8;line-height:1.1">{{ c.name }}</div>
+                <div style="height:3px;background:#26221b;margin-top:6px;position:relative"><div style="position:absolute;left:0;top:0;bottom:0;width: {{ c.pct }}%;background:{{ c.color }}"></div></div>
+              </div>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:16px;color:{{ c.color }};width:42px;text-align:right">{{ c.index }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <!-- trend -->
+    <section style="padding:34px 0;border-top:1px solid #2c2820;margin-top:26px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:12px">
+        <h2 style="font-family:'Spectral',serif;font-weight:600;font-size:22px;color:#ece6d8;margin:0">Regional trend &amp; outlook</h2>
+        <div style="display:flex;gap:24px">
+          <div style="text-align:right"><div style="font-family:'IBM Plex Mono',monospace;font-size:17px;color:#ece6d8">{{ rangeLabel }}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:#7d7565;text-transform:uppercase">48h range</div></div>
+          <sc-if value="{{ showForecast }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:right"><div style="font-family:'IBM Plex Mono',monospace;font-size:17px;color:#c9a24b">{{ forecastLabel }}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:#7d7565;text-transform:uppercase">6h forecast</div></div>
+          </sc-if>
+        </div>
+      </div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#6b6457;margin-bottom:16px;display:flex;gap:18px"><span style="display:flex;align-items:center;gap:6px"><span style="width:16px;height:0;border-top:1.6px solid #ece6d8"></span>Observed</span><span style="display:flex;align-items:center;gap:6px"><span style="width:16px;height:0;border-top:1.6px dashed #c9a24b"></span>Projected</span></div>
+      <div ref="{{ setTrendEl }}" style="width:100%;height:240px;border:1px solid #2c2820;background:#15130f"></div>
+    </section>
+
+    <!-- latest intelligence -->
+    <section style="padding:8px 0 50px 0;border-top:1px solid #2c2820">
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;margin:30px 0 16px 0;gap:16px;flex-wrap:wrap">
+        <h2 style="font-family:'Spectral',serif;font-weight:600;font-size:22px;color:#ece6d8;margin:0">Latest intelligence</h2>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <select value="{{ feedCountry }}" onChange="{{ onFeedCountry }}" style="appearance:none;-webkit-appearance:none;background:#1c1a14;border:1px solid #2c2820;color:#c4bcac;font-family:'IBM Plex Mono',monospace;font-size:11px;padding:7px 26px 7px 11px;border-radius:1px;cursor:pointer;background-image:linear-gradient(45deg,transparent 50%,#7d7565 50%),linear-gradient(135deg,#7d7565 50%,transparent 50%);background-position:calc(100% - 14px) 13px,calc(100% - 9px) 13px;background-size:5px 5px,5px 5px;background-repeat:no-repeat">
+            <sc-for list="{{ feedCountryOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.l }}</option></sc-for>
+          </select>
+          <select value="{{ feedCat }}" onChange="{{ onFeedCat }}" style="appearance:none;-webkit-appearance:none;background:#1c1a14;border:1px solid #2c2820;color:#c4bcac;font-family:'IBM Plex Mono',monospace;font-size:11px;padding:7px 26px 7px 11px;border-radius:1px;cursor:pointer;background-image:linear-gradient(45deg,transparent 50%,#7d7565 50%),linear-gradient(135deg,#7d7565 50%,transparent 50%);background-position:calc(100% - 14px) 13px,calc(100% - 9px) 13px;background-size:5px 5px,5px 5px;background-repeat:no-repeat">
+            <sc-for list="{{ feedCatOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.l }}</option></sc-for>
+          </select>
+          <select value="{{ feedSev }}" onChange="{{ onFeedSev }}" style="appearance:none;-webkit-appearance:none;background:#1c1a14;border:1px solid #2c2820;color:#c4bcac;font-family:'IBM Plex Mono',monospace;font-size:11px;padding:7px 26px 7px 11px;border-radius:1px;cursor:pointer;background-image:linear-gradient(45deg,transparent 50%,#7d7565 50%),linear-gradient(135deg,#7d7565 50%,transparent 50%);background-position:calc(100% - 14px) 13px,calc(100% - 9px) 13px;background-size:5px 5px,5px 5px;background-repeat:no-repeat">
+            <sc-for list="{{ feedSevOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.l }}</option></sc-for>
+          </select>
+          <sc-if value="{{ feedFiltered }}" hint-placeholder-val="{{ false }}">
+            <span onClick="{{ clearFeed }}" class="bnti-link" style="cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#7d7565;letter-spacing:.04em">✕ Clear</span>
+          </sc-if>
+        </div>
+      </div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.08em;color:#6b6457;text-transform:uppercase;margin-bottom:6px">{{ feedCount }} signals shown</div>
+      <sc-if value="{{ hasFeed }}" hint-placeholder-val="{{ true }}">
+      <div style="border-top:1px solid #2c2820">
+        <sc-for list="{{ feed }}" as="ev" hint-placeholder-count="8">
+          <a href="{{ ev.link }}" target="_blank" rel="noopener" class="bnti-feed" style="display:grid;grid-template-columns:130px 1fr auto;gap:20px;align-items:center;padding:15px 14px;border-bottom:1px solid #1c1a14;transition:background .12s">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#7d7565;letter-spacing:.04em">{{ ev.time }}</div>
+            <div style="min-width:0">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:5px">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.06em;color:#15130f;background:{{ ev.countryColor }};padding:1px 6px;border-radius:1px">{{ ev.country }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.08em;color:{{ ev.catColor }};text-transform:uppercase">{{ ev.cat }}</span>
+              </div>
+              <div style="font-family:'Spectral',serif;font-size:16px;line-height:1.34;color:#d8d0c0;text-wrap:pretty">{{ ev.title }}</div>
+            </div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#5a5448;letter-spacing:.06em;text-align:right;white-space:nowrap">via {{ ev.source }} ↗</div>
+          </a>
+        </sc-for>
+      </div>
+      </sc-if>
+      <sc-if value="{{ noFeed }}" hint-placeholder-val="{{ false }}">
+        <div style="border:1px solid #2c2820;padding:38px;text-align:center">
+          <div style="font-family:'Spectral',serif;font-size:17px;color:#9a9284;margin-bottom:6px">No signals match these filters</div>
+          <span onClick="{{ clearFeed }}" class="bnti-link" style="cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#c9a24b;letter-spacing:.06em">Clear filters</span>
+        </div>
+      </sc-if>
+    </section>
+  </main>
+  </sc-if>
+
+  <!-- ============ COUNTRIES ============ -->
+  <sc-if value="{{ isCountries }}" hint-placeholder-val="{{ false }}">
+  <main data-screen-label="Countries" style="max-width:1180px;margin:0 auto;padding:0 28px 60px 28px">
+    <div style="padding:34px 0 24px 0;border-bottom:1px solid #2c2820">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.2em;color:#7d7565;text-transform:uppercase;margin-bottom:10px">Watchlist · 24 countries</div>
+      <h1 style="font-family:'Spectral',serif;font-weight:600;font-size:34px;color:#ece6d8;margin:0">MENA countries</h1>
+      <p style="color:#9a9284;font-size:14.5px;max-width:620px;margin:12px 0 0 0;line-height:1.6">Each country is scored from translated regional reporting and mapped onto a fixed 1–10 threat scale. Open a country for its active signals and category breakdown.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0;border-left:1px solid #2c2820;border-top:1px solid #2c2820">
+      <sc-for list="{{ countriesList }}" as="c" hint-placeholder-count="7">
+        <div class="bnti-card" onClick="{{ c.onOpen }}" style="border-right:1px solid #2c2820;border-bottom:1px solid #2c2820;padding:24px;cursor:pointer;transition:border-color .15s;background:#15130f">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div style="display:flex;align-items:center;gap:11px">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;color:#15130f;background:{{ c.color }};padding:3px 7px;border-radius:1px">{{ c.code }}</span>
+              <h3 style="font-family:'Spectral',serif;font-weight:600;font-size:21px;color:#ece6d8;margin:0">{{ c.name }}</h3>
+            </div>
+            <div onClick="{{ c.onFav }}" style="font-size:17px;color:{{ c.favColor }};cursor:pointer;line-height:1;padding:2px">{{ c.favGlyph }}</div>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:12px;margin-top:18px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:42px;line-height:.85;color:{{ c.color }}">{{ c.index }}</div>
+            <div style="padding-bottom:5px;display:inline-flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:50%;background:{{ c.color }}"></span><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.14em;color:{{ c.color }}">{{ c.status }}</span></div>
+          </div>
+          <div style="margin-top:16px;padding-top:14px;border-top:1px solid #1c1a14;display:flex;align-items:center;gap:12px">
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:#6b6457;text-transform:uppercase;white-space:nowrap">24h trend</span>
+            <svg viewBox="0 0 100 30" preserveAspectRatio="none" style="flex:1;height:26px;display:block"><polyline points="{{ c.spark }}" fill="none" stroke="{{ c.color }}" stroke-width="1.6" vector-effect="non-scaling-stroke"></polyline></svg>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:12px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#7d7565;letter-spacing:.04em">
+            <span>{{ c.eventCount }} signals</span><span>{{ c.topCat }}</span>
+          </div>
+          <div style="margin-top:14px;padding-top:14px;border-top:1px solid #1c1a14;font-family:'Spectral',serif;font-size:14.5px;line-height:1.4;color:#9a9284;text-wrap:pretty">{{ c.latest }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </main>
+  </sc-if>
+
+  <!-- ============ COUNTRY DETAIL ============ -->
+  <sc-if value="{{ isCountry }}" hint-placeholder-val="{{ false }}">
+  <main data-screen-label="Country detail" style="max-width:1180px;margin:0 auto;padding:0 28px 60px 28px">
+    <div style="padding:20px 0;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#7d7565;letter-spacing:.04em">
+      <span class="bnti-link" onClick="{{ goCountries }}" style="cursor:pointer">Countries</span> <span style="color:#4f4940">/</span> <span style="color:#b8b0a0">{{ d_name }}</span>
+    </div>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:0;border-top:1px solid #2c2820;border-bottom:1px solid #2c2820">
+      <div style="padding:34px 40px 34px 0;border-right:1px solid #221f18">
+        <div style="display:flex;align-items:center;gap:13px;margin-bottom:6px">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.06em;color:#15130f;background:{{ d_color }};padding:3px 8px;border-radius:1px">{{ d_code }}</span>
+          <div onClick="{{ d_onFav }}" style="font-size:19px;color:{{ d_favColor }};cursor:pointer;line-height:1">{{ d_favGlyph }}</div>
+        </div>
+        <h1 style="font-family:'Spectral',serif;font-weight:600;font-size:40px;color:#ece6d8;margin:6px 0 0 0">{{ d_name }}</h1>
+        <div style="display:flex;align-items:flex-end;gap:16px;margin-top:24px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:70px;line-height:.82;color:{{ d_color }}">{{ d_index }}</div>
+          <div style="padding-bottom:8px"><div style="font-family:'IBM Plex Mono',monospace;font-size:14px;color:#7d7565">/ 10.0</div>
+          <div style="margin-top:8px;display:inline-flex;align-items:center;gap:7px;padding:4px 10px;border:1px solid {{ d_color }};border-radius:1px"><span style="width:6px;height:6px;border-radius:50%;background:{{ d_color }}"></span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;color:{{ d_color }}">{{ d_status }}</span></div></div>
+        </div>
+        <div style="margin-top:24px;position:relative;height:8px;display:flex;gap:2px">
+          <div style="flex:3;background:#6fae7e;opacity:.22"></div><div style="flex:3;background:#d8a13f;opacity:.22"></div><div style="flex:3;background:#cf5b4e;opacity:.22"></div>
+          <div style="position:absolute;top:-4px;bottom:-4px;width:2px;background:#ece6d8;left: {{ d_pct }}%"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.1em;color:#6b6457;margin-top:7px;text-transform:uppercase"><span>1</span><span>4</span><span>7</span><span>10</span></div>
+        <div style="display:flex;gap:28px;margin-top:26px">
+          <div><div style="font-family:'IBM Plex Mono',monospace;font-size:18px;color:#ece6d8">{{ d_eventCount }}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:#7d7565;text-transform:uppercase;margin-top:3px">Signals</div></div>
+          <div><div style="font-family:'IBM Plex Mono',monospace;font-size:18px;color:#ece6d8">{{ d_raw }}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:#7d7565;text-transform:uppercase;margin-top:3px">Mean weight</div></div>
+        </div>
+      </div>
+      <!-- breakdown -->
+      <div style="padding:34px 0 34px 40px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.2em;color:#7d7565;text-transform:uppercase;margin-bottom:20px">Signal categories</div>
+        <sc-if value="{{ d_hasBreakdown }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <sc-for list="{{ d_breakdown }}" as="b" hint-placeholder-count="3">
+            <div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:7px"><span style="font-size:13.5px;color:#d8d0c0">{{ b.label }}</span><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#9a9284">{{ b.count }} · w{{ b.weight }}</span></div>
+              <div style="height:6px;background:#1f1c16"><div style="height:100%;width: {{ b.pct }}%;background:{{ b.color }}"></div></div>
+            </div>
+          </sc-for>
+        </div>
+        </sc-if>
+        <sc-if value="{{ d_noBreakdown }}" hint-placeholder-val="{{ false }}">
+          <div style="font-family:'Spectral',serif;font-size:16px;color:#7d7565;line-height:1.5">No active threat signals in the current window. This country holds the baseline index of 1.0.</div>
+        </sc-if>
+      </div>
+    </div>
+    <!-- history + actions -->
+    <section style="padding:28px 0;border-bottom:1px solid #2c2820">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:14px;flex-wrap:wrap">
+        <h2 style="font-family:'Spectral',serif;font-weight:600;font-size:20px;color:#ece6d8;margin:0">Index history <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6b6457;letter-spacing:.06em">· 48h</span></h2>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <div onClick="{{ toggleWhy }}" class="bnti-link" style="cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;color:#9a9284;border:1px solid #2c2820;padding:7px 13px">Why this score?</div>
+          <div onClick="{{ toggleCountryAlert }}" style="cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;color:{{ d_alertColor }};border:1px solid #463f31;padding:7px 13px;display:flex;align-items:center;gap:7px"><span style="font-size:11px">🔔</span>{{ d_alertLabel }}</div>
+        </div>
+      </div>
+      <div ref="{{ setCHistEl }}" style="width:100%;height:210px;border:1px solid #2c2820;background:#15130f"></div>
+      <sc-if value="{{ whyOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:14px;border:1px solid #2c2820;background:#120f0b;padding:20px;font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:1.95;color:#c4bcac">
+          <div style="color:#7d7565">// {{ d_eventCount }} active signals · mean event weight {{ d_wAvg }}</div>
+          <div>PerCountry = 1 + 9 · ( 1 − e<sup style="color:#c9a24b">−{{ d_wAvg }}/5 · 1.2</sup> ) = <span style="color:{{ d_color }}">{{ d_wComputed }}</span></div>
+          <div style="color:#7d7565;margin-top:10px;line-height:1.6;font-family:'IBM Plex Sans';font-size:12.5px">The history series is reconstructed for illustration; live deployments persist each two-hour reading per country.</div>
+        </div>
+      </sc-if>
+    </section>
+    <!-- country events -->
+    <section style="padding:30px 0 0 0">
+      <h2 style="font-family:'Spectral',serif;font-weight:600;font-size:20px;color:#ece6d8;margin:0 0 16px 0">Active signals</h2>
+      <sc-if value="{{ d_hasEvents }}" hint-placeholder-val="{{ true }}">
+      <div style="border-top:1px solid #2c2820">
+        <sc-for list="{{ d_events }}" as="ev" hint-placeholder-count="4">
+          <a href="{{ ev.link }}" target="_blank" rel="noopener" class="bnti-feed" style="display:grid;grid-template-columns:130px 1fr auto;gap:20px;align-items:center;padding:15px 14px;border-bottom:1px solid #1c1a14;transition:background .12s">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#7d7565">{{ ev.time }}</div>
+            <div style="min-width:0">
+              <div style="margin-bottom:5px"><span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.08em;color:{{ ev.catColor }};text-transform:uppercase">{{ ev.cat }}</span></div>
+              <div style="font-family:'Spectral',serif;font-size:16px;line-height:1.34;color:#d8d0c0;text-wrap:pretty">{{ ev.title }}</div>
+            </div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#5a5448;text-align:right;white-space:nowrap">via {{ ev.source }} ↗</div>
+          </a>
+        </sc-for>
+      </div>
+      </sc-if>
+      <sc-if value="{{ d_noEvents }}" hint-placeholder-val="{{ false }}">
+        <div style="border:1px solid #2c2820;padding:32px;text-align:center;font-family:'Spectral',serif;font-size:16px;color:#7d7565">No reporting attributed to {{ d_name }} in this window.</div>
+      </sc-if>
+    </section>
+  </main>
+  </sc-if>
+
+  <!-- ============ MARKETS ============ -->
+  <sc-if value="{{ isMarkets }}" hint-placeholder-val="{{ false }}">
+  <main data-screen-label="Markets" style="max-width:1180px;margin:0 auto;padding:0 28px 70px 28px">
+    <div style="padding:34px 0 24px 0;border-bottom:1px solid #2c2820">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.2em;color:#7d7565;text-transform:uppercase;margin-bottom:10px">Markets</div>
+      <h1 style="font-family:'Spectral',serif;font-weight:600;font-size:34px;color:#ece6d8;margin:0">Threat-linked market watch</h1>
+      <p style="color:#9a9284;font-size:14.5px;max-width:720px;margin:12px 0 0 0;line-height:1.6">{{ marketsHeadline }}</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:18px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.08em;color:#7d7565;text-transform:uppercase">
+        <span style="border:1px solid #2c2820;padding:5px 9px">Regime · {{ marketsRegime }}</span>
+        <span style="border:1px solid #2c2820;padding:5px 9px">Updated · {{ marketsUpdated }}</span>
+      </div>
+    </div>
+    <section style="display:grid;grid-template-columns:minmax(0,1fr);gap:0;border:1px solid #2c2820;background:#191711;margin-top:26px">
+      <div style="padding:18px;border-bottom:1px solid #2c2820">
+        <div ref="{{ setMarketsEl }}" style="height:240px;position:relative">
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.15em;color:#5a5448;text-transform:uppercase">Loading market chart…</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1.2fr .75fr .7fr .7fr .8fr .7fr .7fr 1.1fr;gap:12px;padding:11px 18px;border-bottom:1px solid #2c2820;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.14em;color:#5a5448;text-transform:uppercase">
+        <span>Instrument</span><span>Class</span><span>Last</span><span>Chg</span><span>Corr</span><span>Beta</span><span>Dir</span><span>1d forecast</span>
+      </div>
+      <sc-for list="{{ marketRows }}" as="m" hint-placeholder-count="5">
+        <div style="display:grid;grid-template-columns:1.2fr .75fr .7fr .7fr .8fr .7fr .7fr 1.1fr;gap:12px;padding:15px 18px;border-bottom:1px solid #1c1a14;align-items:start">
+          <div>
+            <div style="font-family:'Spectral',serif;font-size:16px;color:#ece6d8">{{ m.name }}</div>
+            <sc-if value="{{ m.isPreliminary }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.08em;color:#d8a13f;text-transform:uppercase">seeded / preliminary</div>
+            </sc-if>
+          </div>
+          <span style="font-size:13px;color:#9a9284">{{ m.assetClass }}</span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#d8d0c0">{{ m.last }}</span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:{{ m.changeColor }}">{{ m.changePct }}</span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#d8d0c0">{{ m.correlation }}</span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#d8d0c0">{{ m.beta }}</span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#9a9284">{{ m.direction }}</span>
+          <div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#d8d0c0">{{ m.forecastLabel }}</div>
+            <div style="display:flex;flex-direction:column;gap:3px;margin-top:6px">
+              <sc-for list="{{ m.scenarios }}" as="s" hint-placeholder-count="2">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#7d7565">{{ s.label }} · {{ s.move }}</div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+    </section>
+  </main>
+  </sc-if>
+
+  <!-- ============ METHODOLOGY ============ -->
+  <sc-if value="{{ isMethodology }}" hint-placeholder-val="{{ false }}">
+  <main data-screen-label="Methodology" style="max-width:820px;margin:0 auto;padding:0 28px 70px 28px">
+    <div style="padding:40px 0 28px 0;border-bottom:1px solid #2c2820">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.2em;color:#7d7565;text-transform:uppercase;margin-bottom:12px">Methodology</div>
+      <h1 style="font-family:'Spectral',serif;font-weight:600;font-size:38px;line-height:1.15;color:#ece6d8;margin:0">How the index is built</h1>
+      <p style="color:#9a9284;font-size:15.5px;line-height:1.65;margin:16px 0 0 0;max-width:640px">MTI converts multilingual regional reporting into a single, repeatable threat signal for the Middle East and North Africa. The pipeline is deterministic where it matters and auditable end to end.</p>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:0;margin-top:8px">
+      <sc-for list="{{ pipeline }}" as="p" hint-placeholder-count="4">
+        <div style="display:grid;grid-template-columns:54px 1fr;gap:22px;padding:26px 0;border-bottom:1px solid #221f18">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#c9a24b">{{ p.num }}</div>
+          <div>
+            <h3 style="font-family:'Spectral',serif;font-weight:600;font-size:20px;color:#ece6d8;margin:0 0 8px 0">{{ p.title }}</h3>
+            <p style="color:#a8a090;font-size:14.5px;line-height:1.62;margin:0;text-wrap:pretty">{{ p.body }}</p>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- weights -->
+    <h2 style="font-family:'Spectral',serif;font-weight:600;font-size:24px;color:#ece6d8;margin:44px 0 6px 0">Category weights</h2>
+    <p style="color:#9a9284;font-size:14px;margin:0 0 20px 0">The categorizer selects a canonical category per headline; each maps to a fixed weight. Weights never change between runs.</p>
+    <div style="border:1px solid #2c2820">
+      <sc-for list="{{ weights }}" as="w" hint-placeholder-count="8">
+        <div style="display:flex;align-items:center;gap:16px;padding:13px 18px;border-bottom:1px solid #1c1a14">
+          <span style="width:9px;height:9px;background:{{ w.color }};flex-shrink:0"></span>
+          <span style="flex:1;font-size:14.5px;color:#d8d0c0">{{ w.label }}</span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:14px;color:{{ w.color }};width:60px;text-align:right">{{ w.weight }}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- formula -->
+    <h2 style="font-family:'Spectral',serif;font-weight:600;font-size:24px;color:#ece6d8;margin:44px 0 14px 0">Scoring formula</h2>
+    <div style="border:1px solid #2c2820;background:#120f0b;padding:24px;font-family:'IBM Plex Mono',monospace;font-size:13.5px;line-height:2;color:#c4bcac">
+      <div style="color:#7d7565">// per-country score from mean event weight</div>
+      <div>PerCountry = 1 + 9 · ( 1 − e<sup style="color:#c9a24b">−avg(w)/5 · 1.2</sup> )</div>
+      <div style="color:#7d7565;margin-top:12px">// composite is a weighted average across tracked countries</div>
+      <div>Composite = weighted_avg( PerCountry across 24 tracked countries )</div>
+    </div>
+
+    <!-- thresholds -->
+    <h2 style="font-family:'Spectral',serif;font-weight:600;font-size:24px;color:#ece6d8;margin:44px 0 16px 0">Operational thresholds</h2>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+      <div style="border:1px solid #2c2820;border-top:2px solid #6fae7e;padding:20px"><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;color:#6fae7e">STABLE</div><div style="font-family:'IBM Plex Mono',monospace;font-size:22px;color:#ece6d8;margin:10px 0 4px 0">1.0 – 4.0</div><div style="font-size:13px;color:#9a9284;line-height:1.5">Routine reporting; no region-wide escalation.</div></div>
+      <div style="border:1px solid #2c2820;border-top:2px solid #d8a13f;padding:20px"><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;color:#d8a13f">ELEVATED</div><div style="font-family:'IBM Plex Mono',monospace;font-size:22px;color:#ece6d8;margin:10px 0 4px 0">4.0 – 7.0</div><div style="font-size:13px;color:#9a9284;line-height:1.5">Sustained tension or instability warranting watch.</div></div>
+      <div style="border:1px solid #2c2820;border-top:2px solid #cf5b4e;padding:20px"><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;color:#cf5b4e">CRITICAL</div><div style="font-family:'IBM Plex Mono',monospace;font-size:22px;color:#ece6d8;margin:10px 0 4px 0">7.0 – 10.0</div><div style="font-size:13px;color:#9a9284;line-height:1.5">Active conflict or security rupture with regional consequences.</div></div>
+    </div>
+
+    <h2 style="font-family:'Spectral',serif;font-weight:600;font-size:24px;color:#ece6d8;margin:44px 0 6px 0">Sources</h2>
+    <p style="color:#9a9284;font-size:14px;margin:0 0 20px 0">Reporting is drawn from regional outlets in their original language, plus aggregated news indices. Coverage is reviewed as feeds change.</p>
+    <div style="border:1px solid #2c2820">
+      <div style="display:grid;grid-template-columns:1.4fr 1fr auto;gap:14px;padding:11px 18px;border-bottom:1px solid #2c2820;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.14em;color:#5a5448;text-transform:uppercase"><span>Outlet</span><span>Coverage</span><span>Language</span></div>
+      <div style="display:grid;grid-template-columns:1.4fr 1fr auto;gap:14px;padding:13px 18px;border-bottom:1px solid #1c1a14;align-items:center"><a href="https://news.google.com" target="_blank" rel="noopener" class="bnti-link" style="font-family:'Spectral',serif;font-size:15px;color:#d8d0c0">Google News RSS ↗</a><span style="font-size:13px;color:#9a9284">24 tracked countries</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#7d7565">MULTI</span></div>
+      <div style="display:grid;grid-template-columns:1.4fr 1fr auto;gap:14px;padding:13px 18px;border-bottom:1px solid #1c1a14;align-items:center"><a href="https://www.middleeasteye.net" target="_blank" rel="noopener" class="bnti-link" style="font-family:'Spectral',serif;font-size:15px;color:#d8d0c0">Middle East Eye ↗</a><span style="font-size:13px;color:#9a9284">Regional MENA coverage</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#7d7565">EN</span></div>
+      <div style="display:grid;grid-template-columns:1.4fr 1fr auto;gap:14px;padding:13px 18px;border-bottom:1px solid #1c1a14;align-items:center"><a href="https://www.newarab.com" target="_blank" rel="noopener" class="bnti-link" style="font-family:'Spectral',serif;font-size:15px;color:#d8d0c0">The New Arab ↗</a><span style="font-size:13px;color:#9a9284">Regional MENA coverage</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#7d7565">EN</span></div>
+      <div style="display:grid;grid-template-columns:1.4fr 1fr auto;gap:14px;padding:13px 18px;border-bottom:1px solid #1c1a14;align-items:center"><a href="https://syrianobserver.com" target="_blank" rel="noopener" class="bnti-link" style="font-family:'Spectral',serif;font-size:15px;color:#d8d0c0">The Syrian Observer ↗</a><span style="font-size:13px;color:#9a9284">Levant coverage</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#7d7565">EN</span></div>
+    </div>
+
+    <div style="margin-top:40px;padding:22px;border:1px solid #2c2820;background:#191711">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.16em;color:#7d7565;text-transform:uppercase;margin-bottom:10px">Limitations</div>
+      <p style="color:#a8a090;font-size:14px;line-height:1.65;margin:0;text-wrap:pretty">The index reflects the volume and severity of published reporting, not ground truth. Source coverage is uneven across languages, machine translation introduces noise, and runs that fail validation are withheld rather than published. MTI is a monitoring aid, not an intelligence assessment.</p>
+    </div>
+  </main>
+  </sc-if>
+
+  <!-- ============ ABOUT ============ -->
+  <sc-if value="{{ isAbout }}" hint-placeholder-val="{{ false }}">
+  <main data-screen-label="About" style="max-width:820px;margin:0 auto;padding:0 28px 70px 28px">
+    <div style="padding:40px 0 28px 0;border-bottom:1px solid #2c2820">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.2em;color:#7d7565;text-transform:uppercase;margin-bottom:12px">About</div>
+      <h1 style="font-family:'Spectral',serif;font-weight:600;font-size:38px;line-height:1.15;color:#ece6d8;margin:0;max-width:600px">A standing read on MENA risk</h1>
+    </div>
+    <div style="padding:32px 0;border-bottom:1px solid #221f18">
+      <p style="font-family:'Spectral',serif;font-size:21px;line-height:1.55;color:#d8d0c0;margin:0;text-wrap:pretty">MTI watches public reporting across 24 MENA countries, translates and categorizes it, and turns each update into a risk signal you can follow over time — open to anyone, with no wall.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border-bottom:1px solid #221f18">
+      <div style="padding:30px 30px 30px 0;border-right:1px solid #221f18">
+        <h3 style="font-family:'Spectral',serif;font-weight:600;font-size:18px;color:#ece6d8;margin:0 0 10px 0">What we measure</h3>
+        <p style="color:#a8a090;font-size:14.5px;line-height:1.65;margin:0">Diplomatic friction, political instability, humanitarian strain, border-security and conflict signals — scored consistently so a quiet week and a tense one are comparable.</p>
+      </div>
+      <div style="padding:30px 0 30px 30px">
+        <h3 style="font-family:'Spectral',serif;font-weight:600;font-size:18px;color:#ece6d8;margin:0 0 10px 0">Who it's for</h3>
+        <p style="color:#a8a090;font-size:14.5px;line-height:1.65;margin:0">Anyone following the region — readers tracking world events, and analysts and journalists who want a transparent, repeatable baseline rather than a black box.</p>
+      </div>
+    </div>
+    <div style="padding:34px 0;display:flex;gap:20px;align-items:flex-start">
+      <div style="width:44px;height:44px;border:1px solid #463f31;display:flex;align-items:center;justify-content:center;flex-shrink:0"><div style="width:13px;height:13px;background:#c9a24b;transform:rotate(45deg)"></div></div>
+      <div>
+        <h3 style="font-family:'Spectral',serif;font-weight:600;font-size:18px;color:#ece6d8;margin:0 0 8px 0">Monarch Castle Technologies</h3>
+        <p style="color:#a8a090;font-size:14.5px;line-height:1.65;margin:0;max-width:560px">MTI is built and maintained by Monarch Castle Technologies as an open geopolitical monitoring project. The methodology, source list and update workflow are public; the live index refreshes on a two-hour cycle.</p>
+      </div>
+    </div>
+    <div style="margin-top:14px;padding:22px;border:1px solid #2c2820;background:#191711">
+      <p style="color:#7d7565;font-size:13px;line-height:1.6;margin:0;text-wrap:pretty">Disclaimer · MTI aggregates publicly available reporting for situational awareness. It does not represent the position of any government and should not be used as a sole basis for operational decisions.</p>
+    </div>
+  </main>
+  </sc-if>
+
+  <!-- ============ AUTH ============ -->
+  <sc-if value="{{ isAuth }}" hint-placeholder-val="{{ false }}">
+  <main data-screen-label="Sign in" style="max-width:430px;margin:0 auto;padding:64px 28px 80px 28px">
+    <div style="text-align:center;margin-bottom:30px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.2em;color:#7d7565;text-transform:uppercase;margin-bottom:14px">{{ authEyebrow }}</div>
+      <h1 style="font-family:'Spectral',serif;font-weight:600;font-size:30px;color:#ece6d8;margin:0">{{ authTitle }}</h1>
+      <p style="color:#9a9284;font-size:14px;line-height:1.6;margin:12px 0 0 0">Saving favourites is optional — the entire index is open without an account.</p>
+    </div>
+    <div style="border:1px solid #2c2820;background:#191711;padding:28px">
+      <sc-if value="{{ isSignup }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-bottom:16px">
+          <label style="display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;color:#7d7565;text-transform:uppercase;margin-bottom:8px">Name</label>
+          <input value="{{ fName }}" onInput="{{ onName }}" placeholder="Your name" style="width:100%;background:#15130f;border:1px solid #2c2820;color:#ece6d8;padding:11px 13px;font-family:'IBM Plex Sans';font-size:14px;border-radius:1px" />
+        </div>
+      </sc-if>
+      <div style="margin-bottom:16px">
+        <label style="display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;color:#7d7565;text-transform:uppercase;margin-bottom:8px">Email</label>
+        <input value="{{ fEmail }}" onInput="{{ onEmail }}" placeholder="you@example.com" style="width:100%;background:#15130f;border:1px solid #2c2820;color:#ece6d8;padding:11px 13px;font-family:'IBM Plex Sans';font-size:14px;border-radius:1px" />
+      </div>
+      <div style="margin-bottom:22px">
+        <label style="display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;color:#7d7565;text-transform:uppercase;margin-bottom:8px">Password</label>
+        <input type="password" value="{{ fPass }}" onInput="{{ onPass }}" placeholder="••••••••" style="width:100%;background:#15130f;border:1px solid #2c2820;color:#ece6d8;padding:11px 13px;font-family:'IBM Plex Sans';font-size:14px;border-radius:1px" />
+      </div>
+      <div onClick="{{ submitAuth }}" style="cursor:pointer;text-align:center;background:#ece6d8;color:#15130f;font-weight:600;font-size:14px;padding:12px;border-radius:1px">{{ authButton }}</div>
+      <div style="text-align:center;margin-top:18px;font-size:13px;color:#9a9284">
+        {{ authSwitchText }} <span class="bnti-link" onClick="{{ toggleAuth }}" style="cursor:pointer;color:#c9a24b">{{ authSwitchLink }}</span>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:18px"><span class="bnti-link" onClick="{{ goOverview }}" style="cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#7d7565;letter-spacing:.06em">← Continue without signing in</span></div>
+  </main>
+  </sc-if>
+
+  <!-- ============ ACCOUNT ============ -->
+  <sc-if value="{{ isAccount }}" hint-placeholder-val="{{ false }}">
+  <main data-screen-label="Account" style="max-width:1180px;margin:0 auto;padding:0 28px 60px 28px">
+    <div style="padding:40px 0 24px 0;border-bottom:1px solid #2c2820;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px">
+      <div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.2em;color:#7d7565;text-transform:uppercase;margin-bottom:10px">Your watchlist</div>
+        <h1 style="font-family:'Spectral',serif;font-weight:600;font-size:32px;color:#ece6d8;margin:0">Welcome back, {{ userName }}</h1>
+      </div>
+      <div onClick="{{ signOut }}" class="bnti-link" style="cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;color:#9a9284;border:1px solid #2c2820;padding:8px 14px">Sign out</div>
+    </div>
+    <sc-if value="{{ hasBreach }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-top:22px;border:1px solid #cf5b4e;background:#211410;padding:15px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;color:#cf5b4e;text-transform:uppercase;border:1px solid #cf5b4e;padding:3px 8px">Alert</span>
+        <span style="font-size:14px;color:#e8c4ba">{{ breachCount }} watched country/countries are at or above your alert threshold.</span>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-left:auto">
+          <sc-for list="{{ breachList }}" as="b" hint-placeholder-count="1">
+            <span onClick="{{ b.onOpen }}" class="bnti-link" style="cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#15130f;background:{{ b.color }};padding:4px 9px">{{ b.code }} · {{ b.index }}</span>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ hasFavs }}" hint-placeholder-val="{{ false }}">
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0;border-left:1px solid #2c2820;border-top:1px solid #2c2820;margin-top:26px">
+        <sc-for list="{{ favList }}" as="c" hint-placeholder-count="2">
+          <div class="bnti-card" onClick="{{ c.onOpen }}" style="border-right:1px solid #2c2820;border-bottom:1px solid #2c2820;padding:24px;cursor:pointer;background:#15130f;transition:border-color .15s">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start">
+              <div style="display:flex;align-items:center;gap:11px"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#15130f;background:{{ c.color }};padding:3px 7px">{{ c.code }}</span><h3 style="font-family:'Spectral',serif;font-weight:600;font-size:21px;color:#ece6d8;margin:0">{{ c.name }}</h3></div>
+              <div onClick="{{ c.onFav }}" style="font-size:17px;color:#c9a24b;cursor:pointer">★</div>
+            </div>
+            <div style="display:flex;align-items:flex-end;gap:12px;margin-top:16px"><div style="font-family:'IBM Plex Mono',monospace;font-size:40px;line-height:.85;color:{{ c.color }}">{{ c.index }}</div><div style="padding-bottom:4px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.14em;color:{{ c.color }}">{{ c.status }}</div></div>
+            <div style="margin-top:14px;padding-top:14px;border-top:1px solid #1c1a14;font-family:'Spectral',serif;font-size:14.5px;line-height:1.4;color:#9a9284;text-wrap:pretty">{{ c.latest }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{ noFavs }}" hint-placeholder-val="{{ true }}">
+      <div style="border:1px solid #2c2820;padding:54px;text-align:center;margin-top:26px">
+        <div style="font-family:'Spectral',serif;font-size:20px;color:#d8d0c0;margin-bottom:8px">No favourites yet</div>
+        <p style="color:#7d7565;font-size:14px;margin:0 0 20px 0">Star a country to pin it here and follow its index over time.</p>
+        <div onClick="{{ goCountries }}" style="display:inline-block;cursor:pointer;background:#ece6d8;color:#15130f;font-weight:600;font-size:13px;padding:10px 18px;border-radius:1px">Browse countries</div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ hasFavs }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-top:40px">
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:14px">
+          <div>
+            <h2 style="font-family:'Spectral',serif;font-weight:600;font-size:22px;color:#ece6d8;margin:0">Alerts</h2>
+            <p style="color:#9a9284;font-size:14px;margin:8px 0 0 0">Choose the level at which each watched country should notify you.</p>
+          </div>
+          <div onClick="{{ toggleDigest }}" style="cursor:pointer;display:flex;align-items:center;gap:11px;border:1px solid #2c2820;padding:9px 15px">
+            <span style="font-family:'IBM Plex Sans';font-size:13px;color:#c4bcac">Daily email digest</span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:{{ digestColor }};border:1px solid {{ digestColor }};padding:2px 9px">{{ digestGlyph }}</span>
+          </div>
+        </div>
+        <div style="border:1px solid #2c2820">
+          <div style="display:grid;grid-template-columns:auto 1fr auto auto;gap:16px;align-items:center;padding:11px 18px;border-bottom:1px solid #2c2820;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.14em;color:#5a5448;text-transform:uppercase"><span>Code</span><span>Neighbour</span><span>Index</span><span>Notify at</span></div>
+          <sc-for list="{{ alertList }}" as="a" hint-placeholder-count="2">
+            <div style="display:grid;grid-template-columns:auto 1fr auto auto;gap:16px;align-items:center;padding:14px 18px;border-bottom:1px solid #1c1a14">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#15130f;background:{{ a.color }};padding:3px 7px">{{ a.code }}</span>
+              <span style="font-family:'Spectral',serif;font-size:16px;color:#ece6d8">{{ a.name }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:15px;color:{{ a.color }}">{{ a.index }}</span>
+              <select value="{{ a.alertVal }}" onChange="{{ a.onAlert }}" style="appearance:none;-webkit-appearance:none;background:#1c1a14;border:1px solid #2c2820;color:#c4bcac;font-family:'IBM Plex Mono',monospace;font-size:11px;padding:7px 26px 7px 11px;border-radius:1px;cursor:pointer;background-image:linear-gradient(45deg,transparent 50%,#7d7565 50%),linear-gradient(135deg,#7d7565 50%,transparent 50%);background-position:calc(100% - 14px) 13px,calc(100% - 9px) 13px;background-size:5px 5px,5px 5px;background-repeat:no-repeat">
+                <option value="off">Off</option>
+                <option value="elevated">Elevated · 4.0</option>
+                <option value="critical">Critical · 7.0</option>
+              </select>
+            </div>
+          </sc-for>
+        </div>
+        <div style="margin-top:18px;border:1px solid #2c2820;padding:18px 20px;display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap">
+          <div style="flex:1;min-width:220px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;color:#7d7565;text-transform:uppercase;margin-bottom:8px">Delivery address</div>
+            <input value="{{ deliveryEmail }}" onInput="{{ onDelivery }}" placeholder="you@example.com" style="width:100%;background:#15130f;border:1px solid #2c2820;color:#ece6d8;padding:10px 12px;font-family:'IBM Plex Sans';font-size:14px;border-radius:1px" />
+          </div>
+          <div onClick="{{ saveDelivery }}" style="cursor:pointer;background:#ece6d8;color:#15130f;font-weight:600;font-size:13px;padding:11px 18px;border-radius:1px">Save delivery</div>
+          <sc-if value="{{ deliverySaved }}" hint-placeholder-val="{{ false }}"><span style="padding-bottom:11px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6fae7e;letter-spacing:.06em">Saved ✓</span></sc-if>
+        </div>
+        <p style="color:#5a5448;font-size:12px;margin:12px 0 0 0;line-height:1.5">Preferences are saved to this browser. Once the MTI worker is connected, alerts and the digest dispatch to this address on the two-hour update cycle.</p>
+      </div>
+    </sc-if>
+  </main>
+  </sc-if>
+
+  <!-- footer -->
+  <footer style="border-top:1px solid #2c2820;background:#120f0b;margin-top:20px">
+    <div style="max-width:1180px;margin:0 auto;padding:34px 28px;display:flex;justify-content:space-between;gap:28px;flex-wrap:wrap">
+      <div style="max-width:340px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <div style="width:22px;height:22px;border:1px solid #463f31;display:flex;align-items:center;justify-content:center"><div style="width:7px;height:7px;background:#c9a24b;transform:rotate(45deg)"></div></div>
+          <span style="font-family:'Spectral',serif;font-size:15px;color:#ece6d8">MENA Threat Index</span>
+        </div>
+        <p style="color:#6b6457;font-size:12.5px;line-height:1.6;margin:0">Open geopolitical monitoring across the Middle East & North Africa.</p>
+      </div>
+      <div style="display:flex;gap:48px;flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:9px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.16em;color:#5a5448;text-transform:uppercase;margin-bottom:3px">Product</div>
+          <span class="bnti-link" onClick="{{ goOverview }}" style="cursor:pointer;font-size:13px;color:#9a9284">Live overview</span>
+          <span class="bnti-link" onClick="{{ goCountries }}" style="cursor:pointer;font-size:13px;color:#9a9284">Countries</span>
+          <span class="bnti-link" onClick="{{ goMarkets }}" style="cursor:pointer;font-size:13px;color:#9a9284">Markets</span>
+          <span class="bnti-link" onClick="{{ goMethodology }}" style="cursor:pointer;font-size:13px;color:#9a9284">Methodology</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:9px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.16em;color:#5a5448;text-transform:uppercase;margin-bottom:3px">Company</div>
+          <span class="bnti-link" onClick="{{ goAbout }}" style="cursor:pointer;font-size:13px;color:#9a9284">About</span>
+          <span style="font-size:13px;color:#9a9284">Monarch Castle Technologies</span>
+          <span style="font-size:13px;color:#9a9284">Apache-2.0 · 2026</span>
+        </div>
+      </div>
+    </div>
+    <div style="border-top:1px solid #221f18"><div style="max-width:1180px;margin:0 auto;padding:14px 28px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;color:#4f4940;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px"><span>© 2026 Monarch Castle Technologies</span><span>Situational-awareness aid · not an intelligence assessment</span></div></div>
+  </footer>
+
+  <!-- share modal -->
+  <sc-if value="{{ shareOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeShare }}" style="position:fixed;inset:0;z-index:80;background:rgba(8,7,5,0.78);display:flex;align-items:center;justify-content:center;padding:24px">
+    <div onClick="{{ stopProp }}" style="width:100%;max-width:460px;background:#1a1711;border:1px solid #463f31;box-shadow:0 20px 60px rgba(0,0,0,0.5)">
+      <div style="padding:14px 20px;border-bottom:1px solid #2c2820;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;color:#7d7565;text-transform:uppercase">Share briefing</span>
+        <span onClick="{{ closeShare }}" style="cursor:pointer;color:#9a9284;font-size:16px;line-height:1">✕</span>
+      </div>
+      <div style="padding:26px 24px;background:#15130f;border-bottom:1px solid #2c2820">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+          <div style="width:22px;height:22px;border:1px solid #463f31;display:flex;align-items:center;justify-content:center"><div style="width:7px;height:7px;background:#c9a24b;transform:rotate(45deg)"></div></div>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;color:#7d7565;text-transform:uppercase">MTI · Regional briefing</span>
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:12px;margin-bottom:16px">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:44px;line-height:.82;color:{{ statusColor }}">{{ mainIndex }}</span>
+          <span style="padding-bottom:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;color:{{ statusColor }}">/ 10 · {{ statusLabel }}</span>
+        </div>
+        <div style="font-family:'Spectral',serif;font-size:19px;line-height:1.35;color:#ece6d8;text-wrap:pretty">{{ briefHeadline }}</div>
+        <div style="margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;color:#5a5448">Updated {{ updatedLabel }} · monarch castle technologies</div>
+      </div>
+      <div style="padding:16px 20px;display:flex;gap:10px;align-items:center">
+        <div onClick="{{ copyBrief }}" style="cursor:pointer;flex:1;text-align:center;background:#ece6d8;color:#15130f;font-weight:600;font-size:13px;padding:11px;border-radius:1px">Copy to clipboard</div>
+        <sc-if value="{{ copied }}" hint-placeholder-val="{{ false }}"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6fae7e;letter-spacing:.06em">Copied ✓</span></sc-if>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#c9a24b&quot;,&quot;options&quot;:[&quot;#c9a24b&quot;,&quot;#b07d3f&quot;,&quot;#8a9bb0&quot;,&quot;#9c6b52&quot;],&quot;tsType&quot;:&quot;string&quot;},&quot;showForecast&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  state = { route: 'overview', activeCountry: 'Egypt', authMode: 'login', fName:'', fEmail:'', fPass:'', user: null, favs: [], alerts: {}, digest: false, deliveryEmail:'', deliverySaved:false, feedCountry:'all', feedCat:'all', feedSev:'all', shareOpen:false, copied:false, whyOpen:false, liveAt:0, liveErr:false };
+
+  CODES = { Algeria:'DZ',Bahrain:'BH',Egypt:'EG',Iran:'IR',Iraq:'IQ',Israel:'IL',Jordan:'JO',Kuwait:'KW',Lebanon:'LB',Libya:'LY',Morocco:'MA',Oman:'OM',Palestine:'PS',Qatar:'QA','Saudi Arabia':'SA',Syria:'SY',Tunisia:'TN','United Arab Emirates':'AE',Yemen:'YE',Turkey:'TR',Sudan:'SD',Mauritania:'MR',Djibouti:'DJ',Somalia:'SO' };
+  dataset(){ return this._live || this.DATA; }
+  guessCat(t){ t=(t||'').toLowerCase();
+    if(/border|hormuz|strait|security|military|conflict|troop|strike|attack/.test(t)) return 'border_security';
+    if(/political|arrest|warrant|instab|election|coup|trial|protest/.test(t)) return 'political_instability';
+    if(/human|displace|refugee|migrant|deport|aid/.test(t)) return 'humanitarian_crisis';
+    if(/terror|bomb|militant/.test(t)) return 'terrorism';
+    return 'diplomatic_tensions'; }
+  transformLive(j){
+    const C=this.CODES, countries={}, events={};
+    Object.keys(j.countries||{}).forEach(n=>{ const c=j.countries[n];
+      const ch=(c.history||[]).map(p=>({ timestamp:p.timestamp, index:(p.index!=null?p.index:p.main_index) })).filter(p=>p.timestamp&&isFinite(p.index));
+      countries[n]={ code:C[n]||n.slice(0,2).toUpperCase(), index:c.index, raw:(c.raw_score!=null?c.raw_score:0), confidence:c.confidence, trend:c.trend, components:c.components||[], history:ch };
+      events[n]=(c.events||[]).map(e=>({ t:e.translated_title||e.title, cat:e.category||'neutral', src:e.source_country||'—', date:e.date, link:e.link, w:(e.weight!=null?e.weight:0) })); });
+    const history=(j.history||[]).map(p=>[p.timestamp, p.main_index!=null?p.main_index:p.index]);
+    const forecast=(j.forecast||[]).map(p=>[p.timestamp, p.main_index!=null?p.main_index:p.index, p.confidence, p.low, p.high]);
+    const b=j.briefing && j.briefing.regional_summary_6h;
+    const brief = b ? { window:(b.window_hours||6)+'h', sources:(b.source_countries||[]).join(' · ')||'Regional', refresh:(b.next_refresh_at?this.fmt(b.next_refresh_at)+' UTC':this.DATA.brief.refresh), headline:b.headline||this.DATA.brief.headline, bullets:(b.bullets||[]).map(t=>{ const text=typeof t==='string'?t:(t&&t.text)||''; return { text, cat:(t&&t.cat)||this.guessCat(text) }; }).filter(t=>t.text) } : this.DATA.brief;
+    const meta={ mainIndex:j.meta.main_index, status:j.meta.status, updated:j.meta.generated_at, next:j.meta.next_update, model:j.meta.model };
+    return { meta, brief, countries, events, history:history.length?history:this.DATA.history, forecast:forecast.length?forecast:this.DATA.forecast, weights:this.DATA.weights, markets:j.markets||null };
+  }
+  loadLive(){
+    const urls=['./mena_data.json','https://raw.githubusercontent.com/akgularda/mena-threat-index/main/mena_data.json'];
+    const tryUrl=(i)=>{ if(i>=urls.length){ this.setState({liveErr:true}); return; }
+      fetch(urls[i],{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(j=>{
+        if(j && j.countries){ this._live=this.transformLive(j); this._mapKey=null; this._trendKey=null; this._chKey=null; this._marketsKey=null; this.setState({liveAt:Date.now(), liveErr:false}); }
+        else tryUrl(i+1);
+      }).catch(()=>tryUrl(i+1)); };
+    tryUrl(0);
+  }
+
+  DATA = {
+    meta: { mainIndex: 3.84, status: 'STABLE', updated: '2026-06-26T02:52:18', next: '2026-06-26T04:00:00', model:'deterministic' },
+    brief: {
+      window: '6h', sources: 'Egypt · Iran · Iraq · Israel · Saudi Arabia', refresh: '06:00 UTC',
+      headline: 'Regional baseline seeded while the live MENA pipeline warms up',
+      bullets: [
+        { text: 'The launch fallback keeps the dashboard usable until the first live mena_data.json publish succeeds.', cat:'neutral' },
+        { text: 'Forecast and market panels will switch to generated data as soon as the pipeline publishes.', cat:'diplomatic_tensions' },
+        { text: 'Country readings remain deterministic and bounded on the same 1–10 scale.', cat:'trade_agreement' }
+      ]
+    },
+    countries: {
+      Egypt:          { code:'EG', index:3.84, raw:1.1, confidence:0.45, trend:0.0, components:[], history:[] },
+      Iran:           { code:'IR', index:5.40, raw:2.2, confidence:0.50, trend:0.0, components:[], history:[] },
+      Iraq:           { code:'IQ', index:3.10, raw:0.9, confidence:0.38, trend:0.0, components:[], history:[] },
+      Israel:         { code:'IL', index:4.60, raw:1.7, confidence:0.44, trend:0.0, components:[], history:[] },
+      'Saudi Arabia': { code:'SA', index:2.70, raw:0.6, confidence:0.36, trend:0.0, components:[], history:[] },
+      Turkey:         { code:'TR', index:3.20, raw:0.8, confidence:0.36, trend:0.0, components:[], history:[] }
+    },
+    events: {
+      Egypt: [
+        { t:'MTI fallback awaiting first live regional run', cat:'neutral', src:'MTI', date:'2026-06-26T02:52:00Z', link:'', w:0.0 }
+      ],
+      Iran: [
+        { t:'Illustrative regional signal carried from the legacy seed', cat:'diplomatic_tensions', src:'MTI', date:'2026-06-26T02:52:00Z', link:'', w:2.5 }
+      ],
+      Iraq: [],
+      Israel: [],
+      'Saudi Arabia': [],
+      Turkey: []
+    },
+    history: [
+      ['2026-06-24T07:51',3.34],['2026-06-24T10:59',3.4],['2026-06-24T14:35',3.5],['2026-06-24T18:06',3.7],
+      ['2026-06-24T19:48',3.26],['2026-06-24T21:35',3.32],['2026-06-24T23:22',3.56],['2026-06-25T14:30',5.26],
+      ['2026-06-25T18:26',5.25],['2026-06-25T21:48',4.21],['2026-06-25T23:36',4.7],['2026-06-26T02:52',3.84]
+    ],
+    forecast: [
+      ['2026-06-26T03:52',4.05,0.35,3.35,4.75],['2026-06-26T04:52',4.12,0.32,3.30,4.94],['2026-06-26T05:52',4.18,0.30,3.25,5.11],
+      ['2026-06-26T06:52',4.24,0.30,3.18,5.30],['2026-06-26T07:52',4.30,0.30,3.12,5.48],['2026-06-26T08:52',4.36,0.30,3.06,5.66]
+    ],
+    weights: [
+      ['military_conflict','Military conflict',8.0],['terrorism','Terrorism',7.0],['border_security','Border security',5.0],
+      ['political_instability','Political instability',4.0],['humanitarian_crisis','Humanitarian crisis',3.0],
+      ['diplomatic_tensions','Diplomatic tensions',2.5],['trade_agreement','Trade & de-escalation',-2.0],['neutral','Neutral / context',0.0]
+    ],
+    markets: null
+  };
+
+  CATLABEL = { military_conflict:'Military conflict', terrorism:'Terrorism', border_security:'Border security', political_instability:'Political instability', humanitarian_crisis:'Humanitarian crisis', diplomatic_tensions:'Diplomatic tensions', trade_agreement:'Trade & de-escalation', neutral:'Neutral' };
+
+  componentDidMount(){
+    try {
+      ['user','favs','alerts','digest','delivery'].forEach(k=>{
+        const oldK='bnti_'+k, newK='mti_'+k;
+        if(localStorage.getItem(newK)==null && localStorage.getItem(oldK)!=null) localStorage.setItem(newK, localStorage.getItem(oldK));
+        if(localStorage.getItem(oldK)!=null) localStorage.removeItem(oldK);
+      });
+      const u = JSON.parse(localStorage.getItem('mti_user') || 'null');
+      const f = JSON.parse(localStorage.getItem('mti_favs') || '[]');
+      const al = JSON.parse(localStorage.getItem('mti_alerts') || '{}');
+      const dg = localStorage.getItem('mti_digest') === '1';
+      const dl = localStorage.getItem('mti_delivery') || '';
+      this.setState({ user:u, favs:Array.isArray(f)?f:[], alerts: al&&typeof al==='object'?al:{}, digest:dg, deliveryEmail:dl });
+    } catch(e){}
+    this.loadLive();
+    fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json')
+      .then(r=>r.json()).then(topo=>{ this._topo = topo; this.drawAll(); }).catch(()=>{});
+    this._tick = setInterval(()=>this.drawAll(), 350);
+  }
+  componentDidUpdate(){ this.drawAll(); }
+  componentWillUnmount(){ clearInterval(this._tick); }
+
+  // ---- helpers ----
+  color(i){ return i>=7 ? '#cf5b4e' : i>=4 ? '#d8a13f' : '#6fae7e'; }
+  label(i){ return i>=7 ? 'CRITICAL' : i>=4 ? 'ELEVATED' : 'STABLE'; }
+  catColor(w){ return w>=5 ? '#cf5b4e' : w>=3 ? '#d8a13f' : w>0 ? '#8fae8a' : '#7d7565'; }
+  fmt(s){ const d=new Date(s); if(isNaN(d)) return s; const M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const p=n=>String(n).padStart(2,'0'); return p(d.getDate())+' '+M[d.getMonth()]+' '+p(d.getHours())+':'+p(d.getMinutes()); }
+  go(route, extra){ this.setState(Object.assign({ route }, extra||{})); try{ window.scrollTo(0,0); }catch(e){} this._mapKey=null; this._trendKey=null; this._chKey=null; this._marketsKey=null; }
+  setAlert(name,val){ const a=Object.assign({},this.state.alerts); if(val==='off'){ delete a[name]; } else { a[name]=val; } this.setState({alerts:a}); try{ localStorage.setItem('mti_alerts', JSON.stringify(a)); }catch(e){} }
+  chist(name, current){ let s=0; for(let i=0;i<name.length;i++) s=(s*31+name.charCodeAt(i))%99991; const r=()=>{ s=(s*1103515245+12345)&0x7fffffff; return s/0x7fffffff; }; const n=this.dataset().history.length; const a=[]; let v=Math.max(1.2,Math.min(9,current+(r()-0.5)*2.4)); for(let i=0;i<n;i++){ a.push(v); v=v+(r()-0.5)*1.5; v=Math.max(1,Math.min(10,v)); } a[n-1]=current; if(n>1) a[n-2]=(a[n-2]+current)/2; return a; }
+  spark(a){ const n=a.length,W=100,H=30,p=3; if(n<2){ a=[a[0]||1,a[0]||1]; } return a.map((v,i)=>{ const x=(i/(a.length-1))*W; const y=p+(1-(v-1)/9)*(H-2*p); return x.toFixed(1)+','+y.toFixed(1); }).join(' '); }
+  accent(){ return this.props.accent || '#c9a24b'; }
+
+  sorted(){ const c=this.dataset().countries;
+    return Object.keys(c).map(n=>({ name:n, ...c[n] })).sort((a,b)=> b.index-a.index || a.name.localeCompare(b.name)); }
+
+  toggleFav(name){
+    if(!this.state.user){ this.go('login'); return; }
+    const favs = this.state.favs.includes(name) ? this.state.favs.filter(x=>x!==name) : this.state.favs.concat(name);
+    this.setState({ favs }); try{ localStorage.setItem('mti_favs', JSON.stringify(favs)); }catch(e){}
+  }
+
+  // ---- map ----
+  drawAll(){ const r=this.state.route; if(r==='overview'){ this.drawMap(); this.drawTrend(); } if(r==='country'){ this.drawCountryHist(); } if(r==='markets'){ this.drawMarkets(); } }
+  drawCountryHist(){
+    const d3=window.d3, el=this.cHistEl; if(!d3||!el) return;
+    const cn=this.state.activeCountry, w=el.clientWidth||600, h=210, key='ch'+cn+w; if(this._chKey===key) return; this._chKey=key; el.innerHTML='';
+    const co=this.dataset().countries[cn]; if(!co) return;
+    const realHist=(co.history||[]).map(p=>({ t:new Date(p.timestamp), v:Number(p.index) })).filter(p=>!isNaN(p.t)&&isFinite(p.v));
+    const arr=this.chist(cn,co.index), ts=this.dataset().history.map(p=>new Date(p[0]));
+    const data=realHist.length ? realHist : arr.map((v,i)=>({t:ts[i]||new Date(),v}));
+    const m={l:30,r:14,t:12,b:20};
+    const x=d3.scaleTime().domain(d3.extent(data,d=>d.t)).range([m.l,w-m.r]);
+    const y=d3.scaleLinear().domain([1,10]).range([h-m.b,m.t]);
+    const svg=d3.select(el).append('svg').attr('width',w).attr('height',h).style('display','block');
+    [[1,4,'#6fae7e'],[4,7,'#d8a13f'],[7,10,'#cf5b4e']].forEach(b=> svg.append('rect').attr('x',m.l).attr('width',w-m.l-m.r).attr('y',y(b[1])).attr('height',y(b[0])-y(b[1])).attr('fill',b[2]).attr('opacity',0.05));
+    [1,4,7,10].forEach(v=>{ svg.append('line').attr('x1',m.l).attr('x2',w-m.r).attr('y1',y(v)).attr('y2',y(v)).attr('stroke','#26221b'); svg.append('text').attr('x',6).attr('y',y(v)+3).attr('fill','#6b6457').attr('font-size',9).attr('font-family',"'IBM Plex Mono',monospace").text(v); });
+    const line=d3.line().x(d=>x(d.t)).y(d=>y(d.v)).curve(d3.curveMonotoneX);
+    const area=d3.area().x(d=>x(d.t)).y0(h-m.b).y1(d=>y(d.v)).curve(d3.curveMonotoneX);
+    const col=this.color(co.index);
+    svg.append('path').datum(data).attr('d',area).attr('fill',col).attr('opacity',0.06);
+    svg.append('path').datum(data).attr('d',line).attr('fill','none').attr('stroke',col).attr('stroke-width',1.7);
+    const last=data[data.length-1]; svg.append('circle').attr('cx',x(last.t)).attr('cy',y(last.v)).attr('r',3.4).attr('fill',col);
+  }
+  _copyBrief(){ const D=this.dataset(); const t='MTI · MENA Threat Index\nComposite '+D.meta.mainIndex.toFixed(2)+' / 10 · '+this.label(D.meta.mainIndex)+'\nUpdated '+this.fmt(D.meta.updated)+' UTC\n\n'+D.brief.headline+'\n\n'+D.brief.bullets.map(b=>'• '+b.text).join('\n')+'\n\nMonarch Castle Technologies · open monitoring'; try{ navigator.clipboard.writeText(t); }catch(e){} this.setState({copied:true}); setTimeout(()=>this.setState({copied:false}),1800); }
+  drawMap(){
+    const d3=window.d3, tj=window.topojson, topo=this._topo, el=this.mapEl;
+    if(!d3||!tj||!topo||!el) return;
+    const w=el.clientWidth||760, h=460, key='m'+w; if(this._mapKey===key) return; this._mapKey=key;
+    el.innerHTML='';
+    const world=tj.feature(topo, topo.objects.countries);
+    const tracked=this.dataset().countries;
+    const tnames=Object.keys(tracked);
+    const core=world.features.filter(f=> tnames.includes(f.properties.name));
+    if(!core.length){ return; }
+    const proj=d3.geoMercator().fitExtent([[26,26],[w-26,h-26]], {type:'FeatureCollection',features:core});
+    const path=d3.geoPath(proj);
+    const svg=d3.select(el).append('svg').attr('width',w).attr('height',h).style('display','block');
+    svg.append('g').selectAll('path').data(world.features).enter().append('path')
+      .attr('d',path).attr('fill','#201d16').attr('stroke','#2c2820').attr('stroke-width',0.6).attr('pointer-events','none');
+    const tip=d3.select(el).append('div').style('position','absolute').style('pointer-events','none')
+      .style('background','#0e0c09').style('border','1px solid #463f31').style('padding','7px 11px')
+      .style('font-family',"'IBM Plex Mono',monospace").style('font-size','11px').style('color','#ece6d8')
+      .style('opacity',0).style('white-space','nowrap').style('z-index','5').style('transform','translate(-50%,-130%)');
+    const self=this;
+    svg.append('g').selectAll('path').data(core).enter().append('path')
+      .attr('d',path)
+      .attr('fill',d=> self.color(tracked[d.properties.name].index))
+      .attr('fill-opacity',0.85)
+      .attr('stroke','#15130f')
+      .attr('stroke-width',0.8)
+      .style('cursor','pointer')
+      .on('mousemove',function(ev,d){ const c=tracked[d.properties.name]; tip.html(d.properties.name.toUpperCase()+' · '+c.index.toFixed(2)+' '+self.label(c.index)).style('opacity',1);
+        const r=el.getBoundingClientRect(); tip.style('left',(ev.clientX-r.left)+'px').style('top',(ev.clientY-r.top)+'px');
+        d3.select(this).attr('fill-opacity',1); })
+      .on('mouseleave',function(ev,d){ tip.style('opacity',0); d3.select(this).attr('fill-opacity',0.85); })
+      .on('click',function(ev,d){ self.go('country',{activeCountry:d.properties.name}); });
+    svg.append('g').selectAll('text').data(core).enter().append('text')
+      .attr('transform',d=>'translate('+path.centroid(d)+')').attr('text-anchor','middle')
+      .attr('font-family',"'IBM Plex Mono',monospace").attr('font-size',9).attr('letter-spacing','0.08em')
+      .attr('fill','#15130f')
+      .attr('pointer-events','none')
+      .text(d=> tracked[d.properties.name].code);
+  }
+
+  drawTrend(){
+    const d3=window.d3, el=this.trendEl; if(!d3||!el) return;
+    const w=el.clientWidth||760, h=240, key='t'+w; if(this._trendKey===key) return; this._trendKey=key; el.innerHTML='';
+    const DS=this.dataset();
+    const showF = this.props.showForecast !== false && DS.forecast.length>0;
+    const hist=DS.history.map(p=>({t:new Date(p[0]),v:p[1]}));
+    const fc=DS.forecast.map(p=>({t:new Date(p[0]),v:p[1],lo:p[3],hi:p[4]}));
+    const last=hist[hist.length-1];
+    const fcLine=[last].concat(fc);
+    const all=showF ? hist.concat(fc) : hist.slice();
+    const m={l:30,r:16,t:14,b:22};
+    const x=d3.scaleTime().domain(d3.extent(all,d=>d.t)).range([m.l,w-m.r]);
+    const y=d3.scaleLinear().domain([1,10]).range([h-m.b,m.t]);
+    const svg=d3.select(el).append('svg').attr('width',w).attr('height',h).style('display','block');
+    [[1,4,'#6fae7e'],[4,7,'#d8a13f'],[7,10,'#cf5b4e']].forEach(b=>{
+      svg.append('rect').attr('x',m.l).attr('width',w-m.l-m.r).attr('y',y(b[1])).attr('height',y(b[0])-y(b[1])).attr('fill',b[2]).attr('opacity',0.05); });
+    [1,4,7,10].forEach(v=>{ svg.append('line').attr('x1',m.l).attr('x2',w-m.r).attr('y1',y(v)).attr('y2',y(v)).attr('stroke','#26221b');
+      svg.append('text').attr('x',6).attr('y',y(v)+3).attr('fill','#6b6457').attr('font-size',10).attr('font-family',"'IBM Plex Mono',monospace").text(v); });
+    if(showF){ svg.append('line').attr('x1',x(last.t)).attr('x2',x(last.t)).attr('y1',m.t).attr('y2',h-m.b).attr('stroke','#3a352a').attr('stroke-dasharray','2 3'); }
+    const area=d3.area().x(d=>x(d.t)).y0(h-m.b).y1(d=>y(d.v)).curve(d3.curveMonotoneX);
+    const line=d3.line().x(d=>x(d.t)).y(d=>y(d.v)).curve(d3.curveMonotoneX);
+    svg.append('path').datum(hist).attr('d',area).attr('fill','#ece6d8').attr('opacity',0.04);
+    svg.append('path').datum(hist).attr('d',line).attr('fill','none').attr('stroke','#ece6d8').attr('stroke-width',1.7);
+    if(showF){ const band=[{t:last.t,lo:last.v,hi:last.v}].concat(fc.filter(d=>d.lo!=null&&d.hi!=null));
+      if(band.length>1){ const bandArea=d3.area().x(d=>x(d.t)).y0(d=>y(d.lo)).y1(d=>y(d.hi)).curve(d3.curveMonotoneX); svg.append('path').datum(band).attr('d',bandArea).attr('fill',this.accent()).attr('opacity',0.12); }
+      svg.append('path').datum(fcLine).attr('d',line).attr('fill','none').attr('stroke',this.accent()).attr('stroke-width',1.5).attr('stroke-dasharray','4 3');
+      const lf=fc[fc.length-1]; svg.append('circle').attr('cx',x(lf.t)).attr('cy',y(lf.v)).attr('r',3).attr('fill',this.accent()); }
+    svg.append('circle').attr('cx',x(last.t)).attr('cy',y(last.v)).attr('r',3.6).attr('fill','#ece6d8');
+  }
+
+  drawMarkets(){
+    const d3=window.d3, el=this.marketsEl; if(!d3||!el) return;
+    const D=this.dataset(), rows=(D.markets&&D.markets.instruments)||[];
+    const top=rows.slice().filter(r=>(r.history||[]).length>1).sort((a,b)=>Math.abs(b.correlation||0)-Math.abs(a.correlation||0))[0];
+    const w=el.clientWidth||760, h=240, key='mk'+w+(top?top.id:'none')+D.history.length; if(this._marketsKey===key) return; this._marketsKey=key; el.innerHTML='';
+    if(!top){ d3.select(el).append('div').style('height','240px').style('display','flex').style('align-items','center').style('justify-content','center').style('font-family',"'IBM Plex Mono',monospace").style('font-size','11px').style('letter-spacing','.15em').style('color','#5a5448').style('text-transform','uppercase').text('Market data unavailable'); return; }
+    const norm=(arr, get)=>{ const vals=arr.map(get).filter(v=>isFinite(v)); const lo=Math.min(...vals), hi=Math.max(...vals), span=(hi-lo)||1; return arr.map(d=>({ t:new Date(d.timestamp||d[0]), v:(get(d)-lo)/span })).filter(d=>!isNaN(d.t)&&isFinite(d.v)); };
+    const market=norm(top.history||[], d=>Number(d.value));
+    const index=norm(D.history.map(p=>({timestamp:p[0], value:p[1]})), d=>Number(d.value));
+    const all=market.concat(index);
+    const m={l:34,r:18,t:18,b:24};
+    const x=d3.scaleTime().domain(d3.extent(all,d=>d.t)).range([m.l,w-m.r]);
+    const y=d3.scaleLinear().domain([0,1]).range([h-m.b,m.t]);
+    const svg=d3.select(el).append('svg').attr('width',w).attr('height',h).style('display','block');
+    [0,.5,1].forEach(v=>{ svg.append('line').attr('x1',m.l).attr('x2',w-m.r).attr('y1',y(v)).attr('y2',y(v)).attr('stroke','#26221b'); });
+    const line=d3.line().x(d=>x(d.t)).y(d=>y(d.v)).curve(d3.curveMonotoneX);
+    svg.append('path').datum(index).attr('d',line).attr('fill','none').attr('stroke','#ece6d8').attr('stroke-width',1.7);
+    svg.append('path').datum(market).attr('d',line).attr('fill','none').attr('stroke',this.accent()).attr('stroke-width',1.7);
+    svg.append('text').attr('x',m.l).attr('y',14).attr('fill','#ece6d8').attr('font-size',10).attr('font-family',"'IBM Plex Mono',monospace").text('MTI');
+    svg.append('text').attr('x',m.l+44).attr('y',14).attr('fill',this.accent()).attr('font-size',10).attr('font-family',"'IBM Plex Mono',monospace").text(top.name);
+  }
+
+  renderVals(){
+    const S=this.state, D=this.dataset(), accent=this.accent();
+    const route=S.route;
+    const navDef=[['Overview','overview'],['Countries','countries'],['Markets','markets'],['Methodology','methodology'],['About','about']];
+    const activeRoutes={ overview:'overview', countries:'countries', country:'countries', markets:'markets', methodology:'methodology', about:'about' };
+    const nav=navDef.map(([label,key])=>({ label, onClick:()=>this.go(key),
+      color: activeRoutes[route]===key ? '#ece6d8' : '#9a9284',
+      border: activeRoutes[route]===key ? accent : 'transparent' }));
+
+    // counts
+    const counts={}; let total=0;
+    Object.keys(D.events).forEach(n=>{ counts[n]=D.events[n].filter(e=>e.w>0).length; total+=counts[n]; });
+
+    const sorted=this.sorted();
+    const mkCountry=(o,i)=>{
+      const evs=D.events[o.name]||[]; const real=evs.filter(e=>e.w>0);
+      const top=real.length ? this.CATLABEL[real.slice().sort((a,b)=>b.w-a.w)[0].cat] : '—';
+      const latest=evs.length ? evs[0].t : 'No active reporting in window';
+      const isFav=S.favs.includes(o.name);
+      return { name:o.name, code:o.code, index:o.index.toFixed(2), raw:o.raw.toFixed(2),
+        color:this.color(o.index), status:this.label(o.index), pct:Math.max(2,((o.index-1)/9*100)).toFixed(1),
+        rank:String(i+1).padStart(2,'0'), eventCount:counts[o.name]||0, topCat:top, latest,
+        isFav, favGlyph:isFav?'★':'☆', favColor:isFav?accent:'#5a5448', spark:this.spark((o.history&&o.history.length?o.history.map(p=>p.index):this.chist(o.name,o.index))),
+        onOpen:()=>this.go('country',{activeCountry:o.name}), onFav:(e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); this.toggleFav(o.name); } };
+    };
+    const countriesList=sorted.map(mkCountry);
+
+    // feed (filtered)
+    const allFeed=[];
+    Object.keys(D.events).forEach(n=>{ D.events[n].forEach(e=> allFeed.push(Object.assign({}, e, { cn:n, code:D.countries[n].code }))); });
+    allFeed.sort((a,b)=> new Date(b.date)-new Date(a.date));
+    const sevOf=(w)=> w>=5?'critical': w>=3?'elevated': w>0?'watch':'neutral';
+    const filtered=allFeed.filter(e=>{
+      if(S.feedCountry!=='all' && e.cn!==S.feedCountry) return false;
+      if(S.feedCat!=='all' && e.cat!==S.feedCat) return false;
+      if(S.feedSev!=='all' && sevOf(e.w)!==S.feedSev) return false;
+      return true;
+    });
+    const feedV=filtered.slice(0,16).map(e=>({ title:e.t, time:this.fmt(e.date), country:e.code,
+      countryColor:this.color(D.countries[e.cn].index), cat:this.CATLABEL[e.cat], catColor:this.catColor(e.w), source:e.src, link:e.link }));
+    const feedCount=filtered.length;
+    const feedCountryOpts=[{v:'all',l:'All countries'}].concat(this.sorted().map(o=>({v:o.name,l:o.name})));
+    const catSet=Array.from(new Set(allFeed.map(e=>e.cat)));
+    const feedCatOpts=[{v:'all',l:'All categories'}].concat(catSet.map(c=>({v:c,l:this.CATLABEL[c]})));
+    const feedSevOpts=[{v:'all',l:'All severities'},{v:'critical',l:'Critical'},{v:'elevated',l:'Elevated'},{v:'watch',l:'Watch'}];
+
+    // hero
+    const h=D.history, mainIndex=D.meta.mainIndex;
+    const delta=(mainIndex - h[h.length-2][1]);
+    const vals=h.map(p=>p[1]);
+    const rmin=Math.min(...vals.slice(-8)), rmax=Math.max(...vals.slice(-8));
+
+    // briefing
+    const briefBullets=D.brief.bullets.map(b=>({ text:b.text, color:this.catColor(D.weights.find(w=>w[0]===b.cat)?.[2]||3) }));
+
+    // detail
+    const cn=S.activeCountry, co=D.countries[cn]||{code:'',index:0,raw:0};
+    const cevs=(D.events[cn]||[]);
+    const realEvs=cevs.filter(e=>e.w>0);
+    const bd={};
+    realEvs.forEach(e=>{ if(!bd[e.cat]) bd[e.cat]={count:0,w:e.w}; bd[e.cat].count++; });
+    const bdArr=Object.keys(bd).map(k=>({ cat:k, label:this.CATLABEL[k], count:bd[k].count, weight:bd[k].w, score:bd[k].count*bd[k].w }))
+      .sort((a,b)=>b.score-a.score);
+    const maxScore=bdArr.length?Math.max(...bdArr.map(b=>b.score)):1;
+    const d_breakdown=bdArr.map(b=>({ label:b.label, count:b.count, weight:b.weight.toFixed(1),
+      pct:Math.max(8,(b.score/maxScore*100)).toFixed(0), color:this.catColor(b.weight) }));
+    const d_events=cevs.map(e=>({ title:e.t, time:this.fmt(e.date), cat:this.CATLABEL[e.cat], catColor:this.catColor(e.w), source:e.src, link:e.link }));
+    const dFav=S.favs.includes(cn);
+
+    // methodology pipeline
+    const pipeline=[
+      { num:'01', title:'Regional ingestion', body:'Headlines are pulled on a two-hour cycle from RSS and Google News feeds across 24 MENA countries, in their original languages when available.' },
+      { num:'02', title:'Translation', body:'Non-English items are machine-translated so that a single taxonomy can be applied consistently across the region.' },
+      { num:'03', title:'Attribution & labelling', body:'A keyword engine provides deterministic country attribution and category labels, with optional NVIDIA-backed LLM review when a key is present.' },
+      { num:'04', title:'Deterministic scoring', body:'Each category maps to a fixed weight. Per-country and composite scores follow a closed formula, so the same inputs always produce the same index. Runs that fail validation are withheld.' }
+    ];
+    const weights=D.weights.map(w=>({ label:w[1], weight:(w[2]>0?'+':'')+w[2].toFixed(1), color:this.catColor(w[2]>0?w[2]:0.0001*0||w[2]) , }));
+    // fix weight colors (trade negative -> brass, neutral -> muted)
+    const weightsV=D.weights.map(w=>({ label:w[1], weight:(w[2]>0?'+':'')+w[2].toFixed(1),
+      color: w[2]>=5?'#cf5b4e': w[2]>=3?'#d8a13f': w[2]>0?'#8fae8a': w[2]<0?'#7fa0b8':'#7d7565' }));
+
+    // auth
+    const isSignup=S.authMode==='signup';
+    const favList=countriesList.filter(c=>c.isFav);
+    const alertList=sorted.filter(o=>S.favs.includes(o.name)).map(o=>{
+      const av=S.alerts[o.name]||'off', thr=av==='critical'?7:av==='elevated'?4:99;
+      return { name:o.name, code:o.code, index:o.index.toFixed(2), color:this.color(o.index), status:this.label(o.index),
+        alertVal:av, alertLabelText: av==='off'?'Off':av==='critical'?'≥ 7.0 Critical':'≥ 4.0 Elevated',
+        breaching: av!=='off'&&o.index>=thr, onAlert:(e)=>this.setAlert(o.name, e.target.value) };
+    });
+    const breaches=alertList.filter(a=>a.breaching).map(a=>({ name:a.name, code:a.code, index:a.index, color:a.color, status:a.status, onOpen:()=>this.go('country',{activeCountry:a.name}) }));
+    const marketRows=((D.markets&&D.markets.instruments)||[]).map(m=>({
+      name:m.name, assetClass:m.asset_class, last:m.last,
+      changePct:((m.change_pct>0?'+':'')+(m.change_pct||0).toFixed(2)+'%'),
+      changeColor:(m.change_pct>=0?'#6fae7e':'#cf5b4e'), correlation:(m.correlation||0).toFixed(2),
+      beta:(m.beta||0).toFixed(2), direction:m.direction, significant:m.significant,
+      isPreliminary:m.significant===false,
+      forecastLabel:(m.forecast?((m.forecast.expected_move_pct>0?'+':'')+m.forecast.expected_move_pct.toFixed(2)+'% ('+m.forecast.low_pct.toFixed(1)+'…'+m.forecast.high_pct.toFixed(1)+')'):'—'),
+      scenarios:(m.scenarios||[]).map(s=>({ label:s.label, move:((s.expected_move_pct>0?'+':'')+(s.expected_move_pct||0).toFixed(2)+'%') }))
+    }));
+
+    return {
+      accent,
+      nav,
+      modelLabel: D.meta && D.meta.model ? 'Model · '+D.meta.model : 'Model · deterministic',
+      // route flags
+      isOverview: route==='overview', isCountries: route==='countries', isCountry: route==='country',
+      isMarkets: route==='markets', isMethodology: route==='methodology', isAbout: route==='about',
+      isAuth: route==='login'||route==='signup', isSignup, isAccount: route==='account',
+      isLoggedIn: !!S.user, isLoggedOut: !S.user,
+      userName: S.user ? S.user.name : '', userInitial: S.user ? (S.user.name||'U')[0].toUpperCase() : 'U',
+      // nav handlers
+      goOverview:()=>this.go('overview'), goCountries:()=>this.go('countries'), goMarkets:()=>this.go('markets'),
+      goMethodology:()=>this.go('methodology'), goAbout:()=>this.go('about'),
+      goLogin:()=>this.go('login'), goAccount:()=>this.go('account'),
+      // overview
+      updatedLabel:this.fmt(D.meta.updated)+' UTC', nextLabel:this.fmt(D.meta.next)+' UTC',
+      liveOn: !!this._live, liveLabel: this._live ? 'Live data' : (S.liveErr ? 'Cached snapshot' : 'Connecting…'),
+      liveColor: this._live ? '#6fae7e' : (S.liveErr ? '#7d7565' : '#d8a13f'),
+      mainIndex:mainIndex.toFixed(2), mainPct:((mainIndex-1)/9*100).toFixed(1),
+      statusColor:this.color(mainIndex), statusLabel:this.label(mainIndex),
+      deltaLabel:(delta>=0?'+':'')+delta.toFixed(2), deltaColor: delta>0?'#cf5b4e': delta<0?'#6fae7e':'#9a9284',
+      totalSignals:total,
+      briefWindow:D.brief.window, briefSources:D.brief.sources, briefRefresh:D.brief.refresh,
+      briefHeadline:D.brief.headline, briefBullets,
+      countriesList, feed:feedV, hasFeed:feedV.length>0, noFeed:feedV.length===0, feedCount,
+      feedCountry:S.feedCountry, feedCat:S.feedCat, feedSev:S.feedSev,
+      feedCountryOpts, feedCatOpts, feedSevOpts,
+      onFeedCountry:(e)=>this.setState({feedCountry:e.target.value}),
+      onFeedCat:(e)=>this.setState({feedCat:e.target.value}),
+      onFeedSev:(e)=>this.setState({feedSev:e.target.value}),
+      feedFiltered: (S.feedCountry!=='all'||S.feedCat!=='all'||S.feedSev!=='all'),
+      clearFeed:()=>this.setState({feedCountry:'all',feedCat:'all',feedSev:'all'}),
+      openShare:()=>this.setState({shareOpen:true}), closeShare:()=>this.setState({shareOpen:false}),
+      shareOpen:S.shareOpen, copied:S.copied, copyBrief:()=>this._copyBrief(),
+      stopProp:(e)=>{ if(e&&e.stopPropagation) e.stopPropagation(); },
+      rangeLabel:rmin.toFixed(1)+'–'+rmax.toFixed(1), forecastLabel:D.forecast[D.forecast.length-1][1].toFixed(2),
+      showForecast: this.props.showForecast !== false,
+      setMapEl:(el)=>{ this.mapEl=el; }, setTrendEl:(el)=>{ this.trendEl=el; },
+      setMarketsEl:(el)=>{ this.marketsEl=el; },
+      marketsHeadline:(D.markets&&D.markets.headline)||'Market correlations will appear after the first pipeline run.',
+      marketsRegime:(D.markets&&D.markets.regime)||'—',
+      marketsUpdated:D.markets?this.fmt(D.markets.generated_at):'—',
+      marketRows,
+      // detail
+      d_name:cn, d_code:co.code, d_index:co.index.toFixed(2), d_raw:co.raw.toFixed(2),
+      d_color:this.color(co.index), d_status:this.label(co.index), d_pct:((co.index-1)/9*100).toFixed(1),
+      d_eventCount:counts[cn]||0, d_breakdown, d_hasBreakdown:d_breakdown.length>0, d_noBreakdown:d_breakdown.length===0,
+      d_events, d_hasEvents:d_events.length>0, d_noEvents:d_events.length===0,
+      d_favGlyph:dFav?'★':'☆', d_favColor:dFav?accent:'#5a5448', d_onFav:()=>this.toggleFav(cn),
+      setCHistEl:(el)=>{ this.cHistEl=el; },
+      whyOpen:S.whyOpen, toggleWhy:()=>this.setState({whyOpen:!S.whyOpen}),
+      d_wAvg:co.raw.toFixed(2), d_wComputed:(1+9*(1-Math.exp(-co.raw/5*1.2))).toFixed(2),
+      d_alertOn: !!S.alerts[cn], d_alertColor: S.alerts[cn]?accent:'#9a9284',
+      d_alertLabel: S.alerts[cn] ? ('Alert armed · ≥ '+(S.alerts[cn]==='critical'?'7.0':'4.0')) : ('Get alerts for '+cn),
+      toggleCountryAlert:()=>{ if(!S.user){ this.go('login'); return; } const cur=S.alerts[cn]; const next=!cur?'elevated':cur==='elevated'?'critical':'off'; this.setAlert(cn,next); },
+      // methodology
+      pipeline, weights:weightsV,
+      // auth
+      authEyebrow:isSignup?'Create account':'Member access',
+      authTitle:isSignup?'Create your watchlist':'Sign in to MTI',
+      authButton:isSignup?'Create account':'Sign in',
+      authSwitchText:isSignup?'Already have an account?':'New to MTI?',
+      authSwitchLink:isSignup?'Sign in':'Create one',
+      fName:S.fName, fEmail:S.fEmail, fPass:S.fPass,
+      onName:(e)=>this.setState({fName:e.target.value}), onEmail:(e)=>this.setState({fEmail:e.target.value}), onPass:(e)=>this.setState({fPass:e.target.value}),
+      toggleAuth:()=>this.setState({authMode:S.authMode==='signup'?'login':'signup'}),
+      submitAuth:()=>{
+        const name = S.fName.trim() || (S.fEmail.split('@')[0]||'Analyst');
+        const user={ name, email:S.fEmail };
+        try{ localStorage.setItem('mti_user', JSON.stringify(user)); }catch(e){}
+        this.setState({ user, fName:'', fEmail:'', fPass:'' }); this.go('account');
+      },
+      // account
+      favList, hasFavs:favList.length>0, noFavs:favList.length===0,
+      alertList, hasAlerts:alertList.length>0,
+      breachList:breaches, hasBreach:breaches.length>0, breachCount:breaches.length,
+      digestOn:S.digest, digestColor:S.digest?accent:'#5a5448', digestGlyph:S.digest?'On':'Off',
+      toggleDigest:()=>{ const d=!S.digest; this.setState({digest:d}); try{ localStorage.setItem('mti_digest', d?'1':''); }catch(e){} },
+      deliveryEmail: S.deliveryEmail || (S.user&&S.user.email) || '',
+      onDelivery:(e)=>this.setState({deliveryEmail:e.target.value, deliverySaved:false}),
+      saveDelivery:()=>{ try{ localStorage.setItem('mti_delivery', S.deliveryEmail || (S.user&&S.user.email) || ''); }catch(e){} this.setState({deliverySaved:true}); setTimeout(()=>this.setState({deliverySaved:false}),1800); },
+      deliverySaved:S.deliverySaved,
+      signOut:()=>{ try{ localStorage.removeItem('mti_user'); }catch(e){} this.setState({user:null}); this.go('overview'); }
+    };
+  }
+}
+</script>
+</body>
+</html>

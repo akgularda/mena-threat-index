@@ -1,0 +1,42 @@
+name: MTI Pipeline
+on:
+  schedule:
+    - cron: "0 */2 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: pipeline
+  cancel-in-progress: false
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Run pipeline
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+        run: python -m pipeline.run
+      - name: Commit data
+        run: |
+          git config user.name "mti-bot"
+          git config user.email "actions@github.com"
+          git add mena_data.json data/
+          if git diff --cached --quiet; then
+            echo "no data changes";
+          else
+            git commit -m "data: ${GITHUB_RUN_ID} [auto]"
+            git push
+          fi
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - uses: actions/deploy-pages@v4

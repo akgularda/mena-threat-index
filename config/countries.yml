@@ -1,0 +1,271 @@
+# MENA Threat Index — country & feed configuration (24 countries).
+#
+# name      : display name (also the key used in mena_data.json)
+# map_name  : EXACT properties.name in world-atlas countries-50m.json (map join key)
+# iso2      : ISO 3166-1 alpha-2
+# lang      : dominant local language (drives the local-language Google News query)
+# weight    : strategic weight in the composite (relative importance / exposure)
+# feeds     : curated outlet RSS/Atom (best-effort; may 403 from CI IPs)
+# gnews     : Google News RSS queries (the guaranteed coverage layer). The pipeline
+#             appends the recency operator (when:Nd) from settings.ingest.window_hours.
+#
+# Pan-regional feeds in `shared_feeds` are fetched once and attributed to a country
+# when the headline mentions it (keyword match), so we don't refetch them per country.
+
+shared_feeds:
+  - { url: "https://www.aljazeera.com/xml/rss/all.xml", source: "Al Jazeera", lang: en }
+  - { url: "https://www.middleeasteye.net/rss", source: "Middle East Eye", lang: en }
+  - { url: "https://www.newarab.com/rss", source: "The New Arab", lang: en }
+  - { url: "https://www.al-monitor.com/rss", source: "Al-Monitor", lang: en }
+
+countries:
+  - name: Egypt
+    map_name: Egypt
+    iso2: EG
+    lang: ar
+    weight: 1.3
+    feeds:
+      - { url: "https://www.egyptindependent.com/feed/", source: "Egypt Independent", lang: en }
+    gnews:
+      - { q: '"Egypt"', hl: en-US, gl: US, ceid: "US:en" }
+      - { q: 'مصر', hl: ar, gl: EG, ceid: "EG:ar" }
+
+  - name: Iran
+    map_name: Iran
+    iso2: IR
+    lang: fa
+    weight: 1.5
+    feeds:
+      - { url: "https://www.tehrantimes.com/rss", source: "Tehran Times", lang: en }
+      - { url: "https://www.presstv.ir/rss.xml", source: "Press TV", lang: en }
+    gnews:
+      - { q: '"Iran"', hl: en-US, gl: US, ceid: "US:en" }
+      - { q: 'ایران', hl: fa, gl: IR, ceid: "IR:fa" }
+
+  - name: Iraq
+    map_name: Iraq
+    iso2: IQ
+    lang: ar
+    weight: 1.3
+    feeds: []
+    gnews:
+      - { q: '"Iraq"', hl: en-US, gl: US, ceid: "US:en" }
+      - { q: 'العراق', hl: ar, gl: IQ, ceid: "IQ:ar" }
+
+  - name: Israel
+    map_name: Israel
+    iso2: IL
+    lang: he
+    weight: 1.5
+    feeds:
+      - { url: "https://www.jpost.com/rss/rssfeedsfrontpage.aspx", source: "Jerusalem Post", lang: en }
+    gnews:
+      - { q: '"Israel"', hl: en-US, gl: US, ceid: "US:en" }
+      - { q: 'ישראל', hl: he, gl: IL, ceid: "IL:he" }
+
+  - name: Syria
+    map_name: Syria
+    iso2: SY
+    lang: ar
+    weight: 1.4
+    feeds: []
+    gnews:
+      - { q: '"Syria"', hl: en-US, gl: US, ceid: "US:en" }
+      - { q: 'سوريا', hl: ar, gl: SY, ceid: "SY:ar" }
+
+  - name: Lebanon
+    map_name: Lebanon
+    iso2: LB
+    lang: ar
+    weight: 1.1
+    feeds: []
+    gnews:
+      - { q: '"Lebanon"', hl: en-US, gl: US, ceid: "US:en" }
+      - { q: 'لبنان', hl: ar, gl: LB, ceid: "LB:ar" }
+
+  - name: Jordan
+    map_name: Jordan
+    iso2: JO
+    lang: ar
+    weight: 0.9
+    feeds: []
+    gnews:
+      - { q: '"Jordan"', hl: en-US, gl: US, ceid: "US:en" }
+      - { q: 'الأردن', hl: ar, gl: JO, ceid: "JO:ar" }
+
+  - name: Saudi Arabia
+    map_name: Saudi Arabia
+    iso2: SA
+    lang: ar
+    weight: 1.3
+    feeds:
+      - { url: "https://www.arabnews.com/rss.xml", source: "Arab News", lang: en }
+      - { url: "https://saudigazette.com.sa/rssFeed/74", source: "Saudi Gazette", lang: en }
+    gnews:
+      - { q: '"Saudi Arabia"', hl: en-US, gl: US, ceid: "US:en" }
+      - { q: 'السعودية', hl: ar, gl: SA, ceid: "SA:ar" }
+
+  - name: Yemen
+    map_name: Yemen
+    iso2: YE
+    lang: ar
+    weight: 1.2
+    feeds: []
+    gnews:
+      - { q: '"Yemen"', hl: en-US, gl: US, ceid: "US:en" }
+      - { q: 'اليمن', hl: ar, gl: YE, ceid: "YE:ar" }
+
+  - name: United Arab Emirates
+    map_name: United Arab Emirates
+    iso2: AE
+    lang: ar
+    weight: 0.9
+    feeds:
+      - { url: "https://www.thenationalnews.com/arc/outboundfeeds/rss/?outputType=xml", source: "The National", lang: en }
+    gnews:
+      - { q: '"United Arab Emirates" OR UAE', hl: en-US, gl: US, ceid: "US:en" }
+      - { q: 'الإمارات', hl: ar, gl: AE, ceid: "AE:ar" }
+
+  - name: Qatar
+    map_name: Qatar
+    iso2: QA
+    lang: ar
+    weight: 0.7
+    feeds: []
+    gnews:
+      - { q: '"Qatar"', hl: en-US, gl: US, ceid: "US:en" }
+      - { q: 'قطر', hl: ar, gl: QA, ceid: "QA:ar" }
+
+  - name: Kuwait
+    map_name: Kuwait
+    iso2: KW
+    lang: ar
+    weight: 0.7
+    feeds: []
+    gnews:
+      - { q: '"Kuwait"', hl: en-US, gl: US, ceid: "US:en" }
+      - { q: 'الكويت', hl: ar, gl: KW, ceid: "KW:ar" }
+
+  - name: Bahrain
+    map_name: Bahrain
+    iso2: BH
+    lang: ar
+    weight: 0.7
+    feeds: []
+    gnews:
+      - { q: '"Bahrain"', hl: en-US, gl: US, ceid: "US:en" }
+      - { q: 'البحرين', hl: ar, gl: BH, ceid: "BH:ar" }
+
+  - name: Oman
+    map_name: Oman
+    iso2: OM
+    lang: ar
+    weight: 0.6
+    feeds:
+      - { url: "https://timesofoman.com/feed", source: "Times of Oman", lang: en }
+    gnews:
+      - { q: '"Oman"', hl: en-US, gl: US, ceid: "US:en" }
+      - { q: 'عمان', hl: ar, gl: OM, ceid: "OM:ar" }
+
+  - name: Palestine
+    map_name: Palestine
+    iso2: PS
+    lang: ar
+    weight: 1.2
+    feeds: []
+    gnews:
+      - { q: '"Palestine" OR Gaza OR "West Bank"', hl: en-US, gl: US, ceid: "US:en" }
+      - { q: 'فلسطين', hl: ar, gl: EG, ceid: "EG:ar" }
+
+  - name: Libya
+    map_name: Libya
+    iso2: LY
+    lang: ar
+    weight: 1.0
+    feeds: []
+    gnews:
+      - { q: '"Libya"', hl: en-US, gl: US, ceid: "US:en" }
+      - { q: 'ليبيا', hl: ar, gl: LY, ceid: "LY:ar" }
+
+  - name: Tunisia
+    map_name: Tunisia
+    iso2: TN
+    lang: ar
+    weight: 0.6
+    feeds: []
+    gnews:
+      - { q: '"Tunisia"', hl: en-US, gl: US, ceid: "US:en" }
+      - { q: 'تونس', hl: ar, gl: TN, ceid: "TN:ar" }
+
+  - name: Algeria
+    map_name: Algeria
+    iso2: DZ
+    lang: ar
+    weight: 0.8
+    feeds: []
+    gnews:
+      - { q: '"Algeria"', hl: en-US, gl: US, ceid: "US:en" }
+      - { q: 'الجزائر', hl: ar, gl: DZ, ceid: "DZ:ar" }
+
+  - name: Morocco
+    map_name: Morocco
+    iso2: MA
+    lang: ar
+    weight: 0.7
+    feeds: []
+    gnews:
+      - { q: '"Morocco"', hl: en-US, gl: US, ceid: "US:en" }
+      - { q: 'المغرب', hl: ar, gl: MA, ceid: "MA:ar" }
+
+  - name: Turkey
+    map_name: Turkey
+    iso2: TR
+    lang: tr
+    weight: 1.3
+    feeds:
+      - { url: "https://www.dailysabah.com/rssFeed/9", source: "Daily Sabah", lang: en }
+      - { url: "https://www.aa.com.tr/en/rss/default?cat=guncel", source: "Anadolu Agency", lang: en }
+      - { url: "https://www.hurriyetdailynews.com/rss", source: "Hurriyet Daily News", lang: en }
+    gnews:
+      - { q: '"Turkey" OR Türkiye', hl: en-US, gl: US, ceid: "US:en" }
+      - { q: 'Türkiye', hl: tr, gl: TR, ceid: "TR:tr" }
+
+  - name: Sudan
+    map_name: Sudan
+    iso2: SD
+    lang: ar
+    weight: 1.0
+    feeds: []
+    gnews:
+      - { q: '"Sudan" -"South Sudan"', hl: en-US, gl: US, ceid: "US:en" }
+      - { q: 'السودان', hl: ar, gl: SD, ceid: "SD:ar" }
+
+  - name: Mauritania
+    map_name: Mauritania
+    iso2: MR
+    lang: ar
+    weight: 0.4
+    feeds: []
+    gnews:
+      - { q: '"Mauritania"', hl: en-US, gl: US, ceid: "US:en" }
+      - { q: 'موريتانيا', hl: ar, gl: MR, ceid: "MR:ar" }
+
+  - name: Djibouti
+    map_name: Djibouti
+    iso2: DJ
+    lang: fr
+    weight: 0.4
+    feeds: []
+    gnews:
+      - { q: '"Djibouti"', hl: en-US, gl: US, ceid: "US:en" }
+      - { q: 'Djibouti', hl: fr, gl: DJ, ceid: "DJ:fr" }
+
+  - name: Somalia
+    map_name: Somalia
+    iso2: SO
+    lang: so
+    weight: 0.6
+    feeds: []
+    gnews:
+      - { q: '"Somalia"', hl: en-US, gl: US, ceid: "US:en" }
+      - { q: 'الصومال', hl: ar, gl: SO, ceid: "SO:ar" }

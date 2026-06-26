@@ -1,0 +1,53 @@
+{
+  "source": "BNTI",
+  "history": [
+    {
+      "timestamp": "2026-06-24T07:51:00Z",
+      "index": 3.34
+    },
+    {
+      "timestamp": "2026-06-24T10:59:00Z",
+      "index": 3.4
+    },
+    {
+      "timestamp": "2026-06-24T14:35:00Z",
+      "index": 3.5
+    },
+    {
+      "timestamp": "2026-06-24T18:06:00Z",
+      "index": 3.7
+    },
+    {
+      "timestamp": "2026-06-24T19:48:00Z",
+      "index": 3.26
+    },
+    {
+      "timestamp": "2026-06-24T21:35:00Z",
+      "index": 3.32
+    },
+    {
+      "timestamp": "2026-06-24T23:22:00Z",
+      "index": 3.56
+    },
+    {
+      "timestamp": "2026-06-25T14:30:00Z",
+      "index": 5.26
+    },
+    {
+      "timestamp": "2026-06-25T18:26:00Z",
+      "index": 5.25
+    },
+    {
+      "timestamp": "2026-06-25T21:48:00Z",
+      "index": 4.21
+    },
+    {
+      "timestamp": "2026-06-25T23:36:00Z",
+      "index": 4.7
+    },
+    {
+      "timestamp": "2026-06-26T02:52:00Z",
+      "index": 3.84
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+# Market instruments correlated with the threat index.
+#
+# Each instrument is fetched (no API key) from one of:
+#   - yahoo : query1/2.finance.yahoo.com/v8/finance/chart/<symbol>
+#   - fred  : fred.stlouisfed.org/graph/fredgraph.csv?id=<symbol>
+# The pipeline tries `symbol` on the primary `source`, then `fallback` if present.
+#
+# asset_class drives grouping/colour in the UI.
+# invert: true for instruments where a HIGHER value means LOWER risk (none here,
+#   kept for clarity). pegged: true marks managed/pegged FX (low signal — shown but
+#   never headlined).
+
+instruments:
+  - { id: brent,  name: "Brent Crude",        symbol: "BZ=F",      source: yahoo, fallback_source: fred, fallback_symbol: "DCOILBRENTEU", asset_class: energy, currency: USD }
+  - { id: wti,    name: "WTI Crude",          symbol: "CL=F",      source: yahoo, fallback_source: fred, fallback_symbol: "DCOILWTICO",   asset_class: energy, currency: USD }
+  - { id: natgas, name: "Natural Gas",        symbol: "NG=F",      source: yahoo, fallback_source: fred, fallback_symbol: "DHHNGSP",      asset_class: energy, currency: USD }
+  - { id: gold,   name: "Gold",               symbol: "GC=F",      source: yahoo, asset_class: metal,  currency: USD }
+  - { id: vix,    name: "VIX (volatility)",   symbol: "^VIX",      source: yahoo, fallback_source: fred, fallback_symbol: "VIXCLS",       asset_class: rates,  currency: USD }
+  - { id: spx,    name: "S&P 500",            symbol: "^GSPC",     source: yahoo, fallback_source: fred, fallback_symbol: "SP500",        asset_class: equity, currency: USD }
+  - { id: defense, name: "Defense & Aerospace (ITA)", symbol: "ITA", source: yahoo, asset_class: equity, currency: USD }
+  - { id: eem,    name: "Emerging Markets (EEM)", symbol: "EEM",   source: yahoo, asset_class: equity, currency: USD }
+  - { id: usdtry, name: "USD / Turkish Lira", symbol: "USDTRY=X",  source: yahoo, asset_class: fx,     currency: TRY }
+  - { id: usdils, name: "USD / Israeli Shekel", symbol: "USDILS=X", source: yahoo, asset_class: fx,    currency: ILS }
+  - { id: usdegp, name: "USD / Egyptian Pound", symbol: "USDEGP=X", source: yahoo, asset_class: fx,    currency: EGP }
+  - { id: tasi,   name: "Saudi TASI",         symbol: "^TASI.SR",  source: yahoo, asset_class: equity, currency: SAR }
+  - { id: ta35,   name: "Tel Aviv TA-35",     symbol: "TA35.TA",   source: yahoo, asset_class: equity, currency: ILS }
