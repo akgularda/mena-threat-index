@@ -45,3 +45,15 @@ def test_confidence_not_floored_for_broad_wellsourced_country():
     legacy = score.score(_mixed(), cfg)["countries"]["Iran"]["confidence"]   # old homogeneity term
     assert new > 0.6        # a broad, well-sourced country is no longer floored
     assert legacy < new     # the old "agreement" term dragged confidence down
+
+
+# ---- P10: saturation constants are config-exposed (defaults reproduce the curve) ----
+
+def test_transform_defaults_match_closed_form_and_are_monotone():
+    import math as _m
+    from pipeline.score import _transform
+    assert abs(_transform(0.0, 5.0, 1.2) - 1.0) < 1e-9
+    expected = 1.0 + 9.0 * (1.0 - _m.exp(-5.0 / 5.0 * 1.2))
+    assert abs(_transform(5.0, 5.0, 1.2) - expected) < 1e-9
+    assert _transform(3.0, 5.0, 2.0) > _transform(3.0, 5.0, 1.2)   # higher gain saturates faster
+    assert 1.0 <= _transform(100.0, 5.0, 1.2) <= 10.0              # clipped to band

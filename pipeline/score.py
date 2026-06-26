@@ -16,6 +16,14 @@ from .config import Config
 from .util import age_hours, clip, to_iso, utcnow
 
 
+def _transform(eff, scale, gain):
+    """Saturating map from mean event weight to the 1-10 index. Constants are
+    config-exposed (score.saturation_scale, score.saturation_gain) so they can be
+    tuned and sensitivity-tested without touching code (METHODOLOGY_REVIEW F6/P10).
+    Defaults (5.0, 1.2) reproduce the inherited BNTI curve exactly."""
+    return clip(1.0 + 9.0 * (1.0 - math.exp(-eff / scale * gain)), 1.0, 10.0)
+
+
 def _per_country(name, events, cfg: Config, prior_raw, prev_index, now):
     sc = cfg.settings.get("score", {})
     half_life = float(sc.get("recency_half_life_h", 18))
@@ -59,7 +67,8 @@ def _per_country(name, events, cfg: Config, prior_raw, prev_index, now):
     avg_w_shrunk = (n_eff * avg_w + k_shrink * m_prior) / (n_eff + k_shrink) if (n_eff + k_shrink) > 0 else avg_w
 
     eff = max(0.0, avg_w_shrunk)
-    index = clip(1.0 + 9.0 * (1.0 - math.exp(-eff / 5.0 * 1.2)), 1.0, 10.0)
+    index = _transform(eff, float(sc.get("saturation_scale", 5.0)),
+                       float(sc.get("saturation_gain", 1.2)))
 
     # ---- confidence ----
     # Volume adequacy (Kish n_eff) and source diversity (Shannon entropy) are

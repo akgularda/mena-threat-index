@@ -20,6 +20,8 @@ score:
   credibility_default: 0.60 # used when a source isn't in the credibility table
   shrink_k: 3               # empirical-Bayes pseudo-count toward country baseline
   baseline_window_days: 14  # trailing window for the per-country prior mean
+  saturation_scale: 5.0     # index = 1 + 9*(1 - exp(-eff/scale * gain)); 5.0/1.2 = BNTI curve
+  saturation_gain: 1.2
   ewma_alpha: 0.20          # composite smoothing factor (normal regime)
   ewma_alpha_spike: 0.50    # smoothing factor when a genuine jump is detected
   spike_min_jump: 1.0       # |diff| must exceed max(this, 2*sigma) to count as a spike
