@@ -1,6 +1,8 @@
 # MENA Threat Index — Patch Plan (proposal)
 
-**Status:** Proposal only. **No code is edited by this document.** Each item is scoped so it can be implemented, reviewed, and reverted independently. Findings (F#) and recommendations (R#) reference [`METHODOLOGY_REVIEW.md`](./METHODOLOGY_REVIEW.md).
+**Status:** Each item is scoped so it can be implemented, reviewed, and reverted independently. Findings (F#) and recommendations (R#) reference [`METHODOLOGY_REVIEW.md`](./METHODOLOGY_REVIEW.md).
+
+**Implementation status (branch `methodology-review`):** ✅ **P1–P5 (Tier 1)** and ✅ **P6** implemented, each test-first with an atomic commit; full `pytest` suite green (26 tests). ⬜ **P7–P9 (Tier 2)** and ⬜ **P10–P13 (Tier 3)** not yet implemented. All shipped changes default to the new, corrected behaviour where it is a defect fix (P1, P2, P4, P5) and are config-selectable back to the legacy behaviour where the change is model-altering (confidence_model, lag_selection).
 
 **Ground rules carried through every item:**
 - The system stays **deterministic and explainable**; the only ML is the *existing optional* LLM refinement.
