@@ -730,7 +730,7 @@ class Component extends DCLogic {
     const forecast=(j.forecast||[]).map(p=>[p.timestamp, p.main_index!=null?p.main_index:p.index, p.confidence, p.low, p.high]);
     const b=j.briefing && j.briefing.regional_summary_6h;
     const brief = b ? { window:(b.window_hours||6)+'h', sources:(b.source_countries||[]).join(' · ')||'Regional', refresh:(b.next_refresh_at?this.fmt(b.next_refresh_at)+' UTC':this.DATA.brief.refresh), headline:b.headline||this.DATA.brief.headline, bullets:(b.bullets||[]).map(t=>{ const text=typeof t==='string'?t:(t&&t.text)||''; return { text, cat:(t&&t.cat)||this.guessCat(text) }; }).filter(t=>t.text) } : this.DATA.brief;
-    const meta={ mainIndex:j.meta.main_index, status:j.meta.status, updated:j.meta.generated_at, next:j.meta.next_update, model:j.meta.model };
+    const meta={ mainIndex:j.meta.main_index, status:j.meta.status, updated:j.meta.generated_at, next:j.meta.next_update, model:j.meta.model, confidence:j.meta.confidence };
     return { meta, brief, countries, events, history:history.length?history:this.DATA.history, forecast:forecast.length?forecast:this.DATA.forecast, weights:this.DATA.weights, markets:j.markets||null };
   }
   loadLive(){

@@ -42,6 +42,10 @@ thresholds:
 briefing:
   headline_conf_gate: 0.35  # a country is named in the headline only if its index
                             # is >= thresholds.elevated AND its confidence >= this
+  bullets: 3                # number of bullets shown in the brief (deterministic + LLM)
+  llm_max_events: 40        # top (most-salient) events the LLM briefing reads
+  llm_max_countries: 0      # top countries the LLM briefing reads (0 = all tracked)
+  source_countries_max: 8   # how many country chips to surface under the headline
 
 
 # ---- Forecast ----

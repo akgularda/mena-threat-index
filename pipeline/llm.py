@@ -51,14 +51,21 @@ def _chat(cfg, messages, log, max_tokens=1500):
     raise RuntimeError(f"LLM call failed after {retries + 1} tries: {last}")
 
 
-def _extract_json(text: str):
-    """Pull the first JSON array/object out of a possibly markdown-wrapped reply."""
+def _extract_json(text: str, prefer: str = "array"):
+    """Pull the first JSON array/object out of a possibly markdown-wrapped reply.
+
+    `prefer` decides which delimiter is tried first: classify() returns a JSON
+    array, but the briefing returns an OBJECT that contains an array — trying the
+    array first would extract the inner `bullets` list and discard the object, so
+    the briefing must ask for ``prefer="object"``.
+    """
     if not text:
         return None
     fence = re.search(r"```(?:json)?\s*(.+?)```", text, re.DOTALL)
     if fence:
         text = fence.group(1)
-    for opener, closer in (("[", "]"), ("{", "}")):
+    pairs = (("{", "}"), ("[", "]")) if prefer == "object" else (("[", "]"), ("{", "}"))
+    for opener, closer in pairs:
         i = text.find(opener)
         j = text.rfind(closer)
         if i != -1 and j != -1 and j > i:
@@ -101,27 +108,58 @@ def classify(cfg, titles, valid_keys, log) -> list:
     return out
 
 
-def summarize_briefing(cfg, top_events, country_scores, log):
-    """Optional: return {headline, bullets:[{text,cat}]} or None on failure."""
+def summarize_briefing(cfg, top_events, country_scores, log,
+                       composite=None, status=None, trend=None, drivers=None):
+    """Optional: return {headline, bullets:[{text,cat}]} or None on failure.
+
+    Sees the whole region — up to briefing.llm_max_events salient headlines and
+    every tracked country's index (briefing.llm_max_countries, 0 = all) — and is
+    told which countries the headline must name and that the composite number must
+    appear, so the polished brief stays coherent with the deterministic one.
+    """
     if not available(cfg):
         return None
     llm = cfg.settings.get("llm", {})
     if not llm.get("use_for_briefing", True):
         return None
-    lines = []
-    for e in top_events[:14]:
-        lines.append(f"- [{e['country']} | {e['category']}] {e['title']}")
-    ranked = ", ".join(f"{c['name']} {c['index']:.1f}" for c in country_scores[:6])
+    bcfg = cfg.settings.get("briefing", {})
+    max_events = int(bcfg.get("llm_max_events", 40))
+    max_countries = int(bcfg.get("llm_max_countries", 0))     # 0 => all tracked
+    n_bullets = max(1, int(bcfg.get("bullets", 3)))
+    window = int(cfg.settings.get("ingest", {}).get("score_window_hours", 48))
+
+    lines = [f"- [{e['country']} | {e['category']}] {e['title']}"
+             for e in top_events[:max_events]]
+    rows = country_scores if max_countries <= 0 else country_scores[:max_countries]
+    ranked = ", ".join(f"{c['name']} {c['index']:.1f}" for c in rows)
+    cats = ", ".join(sorted(cfg.category_keys()))
+    drivers = [d for d in (drivers or []) if d]
+    anchor = f"{float(composite):.2f}" if composite is not None else None
+
+    head_rule = (f"The headline MUST contain the composite number {anchor}"
+                 if anchor else "The headline MUST contain the composite index")
+    if status or trend:
+        head_rule += f" ({status or ''}{', ' + trend if trend else ''})".replace("()", "")
+    must = ""
+    if drivers:
+        must = (f" It MUST name {' and '.join(drivers)} (the countries currently "
+                f"driving the index), and at least one bullet MUST explain each "
+                f"of them.")
+
     sys = ("You write a terse, factual regional security briefing for a MENA threat "
-           "index. No speculation, no fluff, present tense.")
-    usr = (f"Top countries by index: {ranked}.\n\nKey headlines (last 48h):\n"
-           + "\n".join(lines) +
-           "\n\nReturn ONLY JSON: {\"headline\": \"<=120 chars\", \"bullets\": "
-           "[{\"text\": \"one sentence\", \"cat\": \"category_key\"}, ...]} with 3 bullets.")
+           "index. No speculation, no fluff, present tense. Summarise the whole "
+           "region, not a single country.")
+    usr = (f"Composite index: {anchor or 'n/a'} ({status or 'n/a'}, {trend or 'n/a'}).\n"
+           f"Countries by index ({len(rows)}): {ranked}.\n\n"
+           f"Most salient headlines (last {window}h):\n" + "\n".join(lines) +
+           f"\n\n{head_rule}, <=120 chars.{must}\n"
+           f"Return ONLY JSON: {{\"headline\": \"...\", \"bullets\": "
+           f"[{{\"text\": \"one sentence\", \"cat\": \"<one of: {cats}>\"}}, ...]}} "
+           f"with exactly {n_bullets} bullets.")
     try:
         content = _chat(cfg, [{"role": "system", "content": sys},
                               {"role": "user", "content": usr}], log, max_tokens=600)
-        obj = _extract_json(content)
+        obj = _extract_json(content, prefer="object")
         if isinstance(obj, dict) and obj.get("headline") and isinstance(obj.get("bullets"), list):
             return obj
     except Exception as e:

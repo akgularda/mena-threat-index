@@ -1,14 +1,25 @@
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from pipeline import config, briefing
+from pipeline import config, briefing, llm
+
+
+def test_extract_json_object_is_not_swallowed_by_inner_array():
+    # The briefing returns an OBJECT containing a bullets ARRAY. Array-first
+    # parsing (classify's default) would return only the inner list.
+    obj_text = '{"headline": "h", "bullets": [{"text": "t", "cat": "neutral"}]}'
+    assert isinstance(llm._extract_json(obj_text), list)              # default: array-first
+    got = llm._extract_json(obj_text, prefer="object")               # briefing: object-first
+    assert isinstance(got, dict) and got["headline"] == "h"
+    assert llm._extract_json('["a", "b"]') == ["a", "b"]             # classify path unchanged
 
 
 def test_llm_briefing_events_include_country(monkeypatch):
     cfg = config.load()
     seen = {}
 
-    def fake_summarize(cfg, top_events, country_scores, log):
+    def fake_summarize(cfg, top_events, country_scores, log, **kw):
         seen["events"] = top_events
+        seen["kw"] = kw
         return None
 
     monkeypatch.setattr(briefing.llm, "summarize_briefing", fake_summarize)
@@ -90,6 +101,56 @@ def test_headline_reports_rising_trend():
 def test_polished_headline_rejected_without_composite_anchor():
     assert briefing._accept_polished_headline("MENA composite 2.58 holds steady", 2.58) is True
     assert briefing._accept_polished_headline("Iran leads regional risk on conflict", 2.58) is False
+
+
+# ---- bullets must back the headline (the Oman-in-headline / no-Oman-bullet bug) ----
+
+def _ev(title, cat, country, w):
+    return {"title": title, "category": cat, "source_country": country,
+            "weight": w, "recency_weight": 1.0, "credibility": 1.0}
+
+
+def test_driver_country_is_evidenced_in_bullets_and_chips(monkeypatch):
+    monkeypatch.setattr(briefing.llm, "summarize_briefing",
+                        lambda *a, **k: None)            # force the deterministic path
+    cfg = config.load()
+    # Oman is the most elevated+confident country (the headline driver) but its
+    # event is less salient than Israel's two. The brief must still surface an
+    # Oman bullet and list Oman among the source chips.
+    result = _result(4.30, "ELEVATED", {
+        "Oman": {"index": 4.35, "confidence": 0.50, "weight": 0.6, "components": [],
+                 "events": [_ev("Oman moves border units after maritime alert",
+                                "border_security", "Oman", 2.0)]},
+        "Israel": {"index": 3.90, "confidence": 0.80, "weight": 1.5, "components": [],
+                   "events": [_ev("Major strike rocks the north", "military_conflict", "Israel", 8.0),
+                              _ev("Air defenses intercept a barrage", "military_conflict", "Israel", 7.0)]},
+    })
+    out = briefing.build(result, cfg)["regional_summary_6h"]
+    assert "Oman above the elevated line" in out["headline"]
+    assert any("Oman" in b["text"] for b in out["bullets"])   # bullet backs the headline
+    assert "Oman" in out["source_countries"]                  # chip matches the headline
+
+
+def test_brief_sees_all_countries_and_more_events(monkeypatch):
+    seen = {}
+
+    def fake(cfg, top_events, country_scores, log, **kw):
+        seen["n_events"] = len(top_events)
+        seen["n_countries"] = len(country_scores)
+        seen["drivers"] = kw.get("drivers")
+        seen["composite"] = kw.get("composite")
+        return None
+
+    monkeypatch.setattr(briefing.llm, "summarize_briefing", fake)
+    cfg = config.load()
+    countries = {c.name: {"index": 4.5, "confidence": 0.6, "weight": 1.0, "components": [],
+                          "events": [_ev(f"{c.name} development {i}", "political_instability", c.name, 3.0 + i)
+                                     for i in range(3)]}
+                 for c in cfg.countries}
+    briefing.build(_result(4.5, "ELEVATED", countries), cfg)
+    assert seen["n_countries"] == len(cfg.countries)          # all 24 countries reach the LLM
+    assert seen["n_events"] == 3 * len(cfg.countries)         # every event reaches the LLM (capped in llm.py)
+    assert seen["composite"] == 4.5 and seen["drivers"]       # composite + drivers passed for the anchor
 
 
 # ---- P9: briefing bullets are de-duplicated (METHODOLOGY_REVIEW F13) ----
