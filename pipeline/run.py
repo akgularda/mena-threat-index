@@ -54,6 +54,7 @@ def main() -> int:
     priors = history.priors(cfg, log)
     prev_index = history.prev_index_map()
     prev_composite = history.prev_composite()
+    prev_fn = history.prev_forecast_next()   # previous run's 1-step forecast (for realized accuracy)
     recent_diffs = history.recent_diffs(12)
     result = score.score(events, cfg, priors, prev_index, recent_diffs, prev_composite, log)
 
@@ -70,6 +71,11 @@ def main() -> int:
     virtual = hist_before + [{"_dt": ts.astimezone(timezone.utc), "index": result["composite"], "seed": False}]
     fc_points, fc_meta = forecast.forecast(virtual, cfg, result["confidence"], seed_sigma, log)
     forecast_next = fc_points[0]["main_index"] if fc_points else result["composite"]
+
+    # realized accuracy of the previous run's forecast vs the new actual (monitoring)
+    if prev_fn is not None and prev_composite is not None:
+        history.append_forecast_eval(run_id, to_iso(ts), result["composite"], prev_fn, prev_composite, log)
+    fc_meta["realized"] = history.recent_forecast_skill()
 
     # 4. markets (non-fatal)
     mk = markets.build(cfg, virtual, fc_points, result["composite"], log)

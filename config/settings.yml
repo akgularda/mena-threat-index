@@ -49,16 +49,22 @@ briefing:
 
 
 # ---- Forecast ----
+# Data-driven model selection (see scripts/forecast_backtest.py): defaults to
+# persistence — empirically the most reliable point forecast for these short,
+# random-walk-dominated 1-10 series — and only adopts a trend model when it beats
+# persistence on the recent record. Intelligence lives in the calibrated bands.
 forecast:
   horizon_hours: 24
   step_hours: 2
-  phi_prior: 0.90           # AR(1) persistence shrinkage prior
-  phi_shrink_k: 10          # strength of the shrinkage prior (in observations)
-  min_points_ar1: 12        # >= this many points -> AR(1); else cold-start ladder
-  min_points_holt: 5        # >= this and < ar1 -> damped Holt
-  holt_phi: 0.80
-  band_z: 1.2815            # one-sided 90% normal quantile (=> 80% two-sided band)
-  precision_range: 3.0      # R in precision = 1 - halfwidth/R
+  calibration_window: 60    # recent non-seed points used to fit/select & calibrate bands
+  select_min_points: 16     # need >= this many non-seed points before leaving persistence
+  select_min_folds: 8       # and >= this many rolling-origin folds
+  select_margin: 0.05       # a model must beat persistence skill by >= this to be selected
+  drift_phi: 0.85           # damping for the holt_damped / damped_drift candidates
+  band_quantile: 0.80       # empirical |residual| quantile -> band half-width (=> 80% interval)
+  band_floor: 0.15          # minimum band half-width (avoid absurdly tight bands)
+  band_z: 1.2815            # normal quantile for the cold-start sigma*sqrt(h) band fallback
+  precision_range: 3.0      # R in per-horizon confidence = 1 - halfwidth/R
 
 # ---- Markets ----
 markets:

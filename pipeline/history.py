@@ -15,6 +15,7 @@ DATA = os.path.join(ROOT, "data")
 HISTORY = os.path.join(DATA, "history.jsonl")
 COUNTRIES_DIR = os.path.join(DATA, "countries")
 MARKETS = os.path.join(DATA, "markets", "instruments.jsonl")
+FORECAST_EVAL = os.path.join(DATA, "forecast_eval.jsonl")
 SEED = os.path.join(DATA, "seed", "bnti_history_seed.json")
 
 
@@ -112,6 +113,16 @@ def recent_diffs(n: int = 12) -> list:
     return [vals[i + 1] - vals[i] for i in range(len(vals) - 1)]
 
 
+def prev_forecast_next():
+    """Most recent non-seed run's stored 1-step forecast (the prediction whose
+    target is the current run), for realized-accuracy logging."""
+    for r in reversed([r for r in read_composite() if not r.get("seed")]):
+        fn = r.get("forecast_next")
+        if fn is not None:
+            return float(fn)
+    return None
+
+
 def prev_index_map() -> dict:
     out = {}
     if not os.path.isdir(COUNTRIES_DIR):
@@ -164,6 +175,35 @@ def append_run(run_id, ts_iso, result, forecast_next, market_rows, log=None) -> 
         _append_idempotent(MARKETS, row)
     if log:
         log.info("history: appended run %s", run_id)
+
+
+def append_forecast_eval(run_id, ts_iso, actual, model_pred, naive_pred, log=None) -> None:
+    """Record the realized 1-step error of the previous run's forecast vs the new
+    actual, alongside the naive (persistence) error, so forecast skill is monitored
+    over time. Idempotent on run_id. Read with recent_forecast_skill()."""
+    em = abs(float(model_pred) - float(actual))
+    en = abs(float(naive_pred) - float(actual))
+    _append_idempotent(FORECAST_EVAL, {
+        "run_id": run_id, "ts": ts_iso, "actual": round(float(actual), 3),
+        "model_pred": round(float(model_pred), 3), "naive_pred": round(float(naive_pred), 3),
+        "err_model": round(em, 3), "err_naive": round(en, 3),
+    })
+    if log:
+        log.info("forecast eval: err_model=%.3f err_naive=%.3f (skill %+.0f%%)",
+                 em, en, (1 - em / en) * 100 if en > 0 else 0.0)
+
+
+def recent_forecast_skill(n: int = 20) -> dict | None:
+    """Pooled realized skill of the last n logged forecasts vs naive persistence."""
+    rows = _read_jsonl(FORECAST_EVAL)
+    if not rows:
+        return None
+    rows = rows[-n:]
+    sm = sum(float(r.get("err_model", 0.0)) for r in rows)
+    sn = sum(float(r.get("err_naive", 0.0)) for r in rows)
+    return {"n": len(rows), "mae_model": round(sm / len(rows), 3),
+            "mae_naive": round(sn / len(rows), 3),
+            "skill": round(1.0 - sm / sn, 3) if sn > 0 else 0.0}
 
 
 def published_composite(days: int) -> list:
