@@ -9,3 +9,4 @@
 {"run_id": "2026-06-27T08Z", "ts": "2026-06-27T08:00:00Z", "name": "Turkey", "index": 1.78, "raw": 0.379, "confidence": 0.796, "n_events": 258}
 {"run_id": "2026-06-27T10Z", "ts": "2026-06-27T10:00:00Z", "name": "Turkey", "index": 1.81, "raw": 0.391, "confidence": 0.795, "n_events": 257}
 {"run_id": "2026-06-27T12Z", "ts": "2026-06-27T12:00:00Z", "name": "Turkey", "index": 1.88, "raw": 0.429, "confidence": 0.795, "n_events": 258}
+{"run_id": "2026-06-27T14Z", "ts": "2026-06-27T14:00:00Z", "name": "Turkey", "index": 1.91, "raw": 0.445, "confidence": 0.795, "n_events": 258}
