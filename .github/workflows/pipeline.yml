@@ -30,11 +30,18 @@ jobs:
           git config user.email "actions@github.com"
           git add mena_data.json data/
           if git diff --cached --quiet; then
-            echo "no data changes";
-          else
-            git commit -m "data: ${GITHUB_RUN_ID} [auto]"
-            git push
+            echo "no data changes"; exit 0
           fi
+          git commit -m "data: ${GITHUB_RUN_ID} [auto]"
+          # main can advance during a run (merges, manual commits); rebase our data
+          # commit onto the new tip and retry, instead of failing on a stale push.
+          for attempt in 1 2 3; do
+            if git pull --rebase --autostash origin main && git push; then
+              exit 0
+            fi
+            echo "push attempt ${attempt} failed (main moved?) — retrying"; sleep $((RANDOM % 5 + 3))
+          done
+          echo "::error::failed to push data after 3 attempts"; exit 1
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
