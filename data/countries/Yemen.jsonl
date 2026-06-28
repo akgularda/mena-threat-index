@@ -18,3 +18,4 @@
 {"run_id": "2026-06-28T06Z", "ts": "2026-06-28T06:00:00Z", "name": "Yemen", "index": 2.02, "raw": 0.502, "confidence": 0.794, "n_events": 126}
 {"run_id": "2026-06-28T10Z", "ts": "2026-06-28T10:00:00Z", "name": "Yemen", "index": 2.0, "raw": 0.49, "confidence": 0.794, "n_events": 124}
 {"run_id": "2026-06-28T12Z", "ts": "2026-06-28T12:00:00Z", "name": "Yemen", "index": 1.86, "raw": 0.418, "confidence": 0.794, "n_events": 126}
+{"run_id": "2026-06-28T14Z", "ts": "2026-06-28T14:00:00Z", "name": "Yemen", "index": 1.71, "raw": 0.344, "confidence": 0.801, "n_events": 121}
