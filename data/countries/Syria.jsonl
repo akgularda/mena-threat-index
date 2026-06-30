@@ -30,3 +30,4 @@
 {"run_id": "2026-06-29T20Z", "ts": "2026-06-29T20:00:00Z", "name": "Syria", "index": 1.65, "raw": 0.312, "confidence": 0.81, "n_events": 162}
 {"run_id": "2026-06-29T22Z", "ts": "2026-06-29T22:00:00Z", "name": "Syria", "index": 1.8, "raw": 0.387, "confidence": 0.805, "n_events": 166}
 {"run_id": "2026-06-30T10Z", "ts": "2026-06-30T10:00:00Z", "name": "Syria", "index": 1.52, "raw": 0.246, "confidence": 0.802, "n_events": 166}
+{"run_id": "2026-06-30T14Z", "ts": "2026-06-30T14:00:00Z", "name": "Syria", "index": 1.53, "raw": 0.253, "confidence": 0.801, "n_events": 161}
