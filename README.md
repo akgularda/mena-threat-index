@@ -90,10 +90,10 @@ The Index spans twenty-four states of the Middle East and North Africa, queried 
 
 ### Preview
 <!-- CODEX: drop product screenshots into docs/ -->
-![MENA Threat Index — regional map and composite](docs/screenshot-1.png)
+<!-- ![MENA Threat Index — regional map and composite](docs/screenshot-1.png) (screenshot pending) -->
 <!-- CODEX: capture the live app at https://sdcofa.github.io/mena-threat-index/ — the main map view showing the choropleth of MENA countries shaded by threat level, with the regional composite reading and status headline. -->
 
-![MENA Threat Index — markets and forecast detail](docs/screenshot-2.png)
+<!-- ![MENA Threat Index — markets and forecast detail](docs/screenshot-2.png) (screenshot pending) -->
 <!-- CODEX: capture the Markets screen and/or a country-detail panel showing the 24h forecast path with prediction bands and the lagged market-correlation ("threat beta") table. -->
 
 ## Data & Sources
