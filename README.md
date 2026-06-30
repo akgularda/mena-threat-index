@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="docs/logo.png" alt="MENA Threat Index — institutional seal" width="140"/>
+  <picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/SDCofA/mena-threat-index/main/docs/logo-dark.png"><img src="docs/logo.png" alt="MENA Threat Index — institutional seal" width="140"></picture>
   <!-- CODEX: generate a clean, minimal product logo for "MENA Threat Index" — a stylized regional-risk gauge / compass dial over a faint MENA coastline silhouette, deep navy (#0b1f3a) on transparent, with a single accent arc; corporate, flat, no text or small "MTI" monogram. -->
 
   # MENA Threat Index
